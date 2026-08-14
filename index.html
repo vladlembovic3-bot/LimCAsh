@@ -238,32 +238,32 @@
     <div class="app-footer">
         ⚡ ЛимКэш v1.0 • Дизайнеры тоже люди — иногда им нужно попить кофе.
     </div>
-
-   <script>
-        // Инициализация Telegram SDK
+<script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // Запуск свайпов с поддержкой ПК (мышка + клавиатура)
         document.addEventListener('DOMContentLoaded', function () {
             const swiper = new Swiper('.mySwiper', {
-                initialSlide: 1, // Открывает ЦЕНТР
+                initialSlide: 1,
                 speed: 300,
                 spaceBetween: 0,
                 
-                // Включаем поддержку мыши на ПК
-                simulateTouch: true,
-                grabCursor: true,
+                // Включаем ВСЕ возможные варианты управления для ПК:
+                grabCursor: true,          // Курсор-ручка для захвата
+                simulateTouch: true,       // Имитация пальца мышкой
+                touchEventsTarget: 'wrapper',
+                passiveListeners: false,
                 
-                // Включаем стрелочки на клавиатуре (← / →)
+                // Стрелочки клавиатуры
                 keyboard: {
                     enabled: true,
-                    onlyInViewport: true,
                 },
                 
-                touchStartPreventDefault: false,
-                allowTouchMove: true
+                // Колесико мыши (скролл влево/вправо мышкой)
+                mousewheel: {
+                    forceToAxis: true,
+                },
             });
         });
     </script>
