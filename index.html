@@ -221,9 +221,9 @@
         <div class="header-title">ЛимКэш</div>
         
         <div class="nav-controls">
-            <div class="nav-btn" id="btn-left">◀</div>
-            <div class="nav-btn" id="btn-center">🎯</div>
-            <div class="nav-btn" id="btn-right">▶</div>
+            <div class="nav-btn" onclick="navTo(0)">◀</div>
+            <div class="nav-btn" onclick="navTo(1)">🎯</div>
+            <div class="nav-btn" onclick="navTo(2)">▶</div>
         </div>
     </div>
 
@@ -327,33 +327,36 @@
 
         let swiper;
 
-        document.addEventListener('DOMContentLoaded', function () {
+        // Инициализируем сразу
+        function initApp() {
             swiper = new Swiper('.mySwiper', {
-                initialSlide: 1, // Открываем центральный экран
-                speed: 350,      // Плавная скорость переключения
+                initialSlide: 1,
+                speed: 300,
                 spaceBetween: 0,
                 simulateTouch: true,
-                allowTouchMove: true
+                allowTouchMove: true,
+                observer: true,
+                observeParents: true
             });
 
-            // Навигация кнопками без резких проскоков
-            function handleNav(action) {
-                if (!swiper) return;
-                if (action === 'left') swiper.slideTo(0);
-                if (action === 'center') swiper.slideTo(1);
-                if (action === 'right') swiper.slideTo(2);
+            // Принудительный сдвиг на центральный экран (Лента) через 100мс
+            setTimeout(() => {
+                if (swiper) swiper.slideTo(1, 0);
+            }, 100);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+        // Железобетонные функции навигации для onClick
+        function navTo(index) {
+            if (swiper) {
+                swiper.slideTo(index, 300);
             }
-
-            const btnLeft = document.getElementById('btn-left');
-            const btnCenter = document.getElementById('btn-center');
-            const btnRight = document.getElementById('btn-right');
-
-            ['pointerdown', 'click'].forEach(evt => {
-                btnLeft.addEventListener(evt, (e) => { e.preventDefault(); handleNav('left'); });
-                btnCenter.addEventListener(evt, (e) => { e.preventDefault(); handleNav('center'); });
-                btnRight.addEventListener(evt, (e) => { e.preventDefault(); handleNav('right'); });
-            });
-        });
+        }
 
         // ЛОГИКА КАЛЬКУЛЯТОРА
         let currency = 'BYN';
