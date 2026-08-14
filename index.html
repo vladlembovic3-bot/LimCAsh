@@ -6,14 +6,13 @@
   <title>LimCash Web App</title>
   <link rel="stylesheet" href="style.css">
   
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
-  <!-- Защита от открытия мобильного браузера вместо Mini App -->
+  <!-- Защита для мобильных -->
   <script>
     (function() {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      // Проверяем наличие валидных данных от Telegram Mini App
       const isTgMiniApp = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 
       if (isMobile && !isTgMiniApp) {
@@ -31,10 +30,16 @@
       <div id="userRoleBadge" class="badge">Гость</div>
     </header>
 
-    <!-- ВКЛАДКА 1: КАЛЬКУЛЯТОР (ВИДЕН ПО УМОЛЧАНИЮ) -->
+    <!-- Навигация (Видна только Владельцу и Админам) -->
+    <nav class="tab-nav hidden" id="mainNav">
+      <button class="tab-btn active" id="btn-tab-calc" onclick="switchTab('calc')">🧮 Калькулятор</button>
+      <button class="tab-btn" id="btn-tab-admin" onclick="switchTab('admin')">⚙️ Админ-панель</button>
+    </nav>
+
+    <!-- ВКЛАДКА 1: КАЛЬКУЛЯТОР -->
     <main id="tab-calc" class="tab-content active">
       
-      <!-- Выбор сотрудника -->
+      <!-- 1. Выбор сотрудника -->
       <div class="form-group">
         <label>Выберите сотрудника:</label>
         <div class="custom-select" id="employeeSelect" onclick="toggleEmployeeDropdown()">
@@ -42,22 +47,22 @@
             <span>Загрузка сотрудников...</span>
           </div>
           <div class="select-items select-hide" id="employeeList">
-            <!-- Список сотрудников -->
+            <!-- Список сотрудников генерируется в JS -->
           </div>
         </div>
       </div>
 
-      <!-- Счётчик товаров -->
+      <!-- 2. Количество товаров -->
       <div class="form-group">
         <label>Количество товаров:</label>
         <div class="counter-box">
           <button type="button" class="btn-counter" onclick="changeItemCount(-1)">-</button>
-          <input type="number" id="itemCount" value="1" min="1" onchange="calculate()">
+          <input type="number" id="itemCount" value="1" min="1" oninput="calculate()">
           <button type="button" class="btn-counter" onclick="changeItemCount(1)">+</button>
         </div>
       </div>
 
-      <!-- Сумма и валюта -->
+      <!-- 3. Сумма сделки и Валюта -->
       <div class="form-group">
         <label>Сумма сделки:</label>
         <div class="input-row">
@@ -65,15 +70,12 @@
           <select id="currencySelect" onchange="calculate()">
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (€)</option>
-            <option value="RUB">RUB (₽)</option>
             <option value="BYN">BYN (Br)</option>
+            <option value="RUB">RUB (₽)</option>
           </select>
         </div>
-      </div>
-
-      <!-- Конвертация -->
-      <div class="conversion-preview" id="conversionBox">
-        Конвертация: $0.00 / 0.00 Br / 0.00 ₽
+        <!-- Встроенная конвертация в RUB -->
+        <div class="rub-preview" id="rubConversion">≈ 0.00 ₽</div>
       </div>
 
       <!-- Кнопка Рассчитать -->
@@ -86,17 +88,15 @@
       </div>
     </main>
 
-    <!-- ВКЛАДКА 2: АДМИН-ПАНЕЛЬ (СКРЫТА ПО УМОЛЧАНИЮ) -->
+    <!-- ВКЛАДКА 2: АДМИН-ПАНЕЛЬ -->
     <main id="tab-admin" class="tab-content">
       <div class="admin-menu">
         
-        <!-- 1. Очередь заказов -->
         <div class="admin-card" onclick="openAdminModal('orders')">
           <div class="admin-card-title">📦 1. Очередь заказов</div>
           <div class="admin-card-sub">Заказы, чат с выдачей прав и товаров</div>
         </div>
 
-        <!-- 2. Состояние на работе -->
         <div class="admin-card">
           <div class="admin-card-title">🟢 2. Состояние на работе</div>
           <select id="workStatusSelect" onchange="updateWorkStatus(this.value)" style="margin-top: 8px;">
@@ -106,25 +106,21 @@
           </select>
         </div>
 
-        <!-- 3. Чаты -->
         <div class="admin-card" onclick="openAdminModal('chats')">
           <div class="admin-card-title">💬 3. Чаты</div>
           <div class="admin-card-sub">Активные диалоги с покупателями</div>
         </div>
 
-        <!-- 4. Сводка о доходах -->
         <div class="admin-card">
           <div class="admin-card-title">📊 4. Сводка о доходах</div>
           <button class="secondary-btn" style="margin-top: 8px;" onclick="alert('Раздел в разработке')">Открыть сводку</button>
         </div>
 
-        <!-- 5. Отзывы сотрудника -->
         <div class="admin-card" onclick="openAdminModal('my-reviews')">
           <div class="admin-card-title">⭐ 5. Мои Отзывы</div>
           <div class="admin-card-sub">Личный рейтинг и оценки</div>
         </div>
 
-        <!-- 6. Панель Владельца (Модерация) -->
         <div class="admin-card owner-only hidden" id="ownerPanelCard" onclick="openAdminModal('owner-moderation')">
           <div class="admin-card-title">👑 6. Модерация (Только Владелец)</div>
           <div class="admin-card-sub">Управление всеми чатами и отзывами</div>
