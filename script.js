@@ -1,16 +1,14 @@
-// ====== КОНФИГУРАЦИЯ ДУСТУПА И СОТРУДНИКОВ ======
+// ====== НАСТРОЙКИ ДОСТУПА ======
+const OWNER_TG_ID = 123456789; // 👈 Вставь свой Telegram ID
 
-// 1. Твой Telegram User ID (Владелец)
-const OWNER_TG_ID = 6860406379; // 👈 ЗАМЕНИ НА СВОЙ TG ID
-
-// 2. Список Telegram ID сотрудников (Которые должны сразу попадать в Админку)
 const STAFF_TG_IDS = [
-  6860406379, // Твой ID тоже тут
-  6546478411, // ID первого сотрудника (John)
-  6527279937  // ID второго сотрудника
+  123456789,
+  987654321,
+  112233445
 ];
 
-// Список сотрудников для выпадающего меню калькулятора
+const ADMIN_SECRET_KEY = "limcash2026"; // Ключ для входа с ПК через браузер
+
 const EMPLOYEES = [
   {
     id: 1,
@@ -40,76 +38,61 @@ const EMPLOYEES = [
 
 const RATES = { USD: 1, EUR: 0.92, RUB: 90.0, BYN: 3.25 };
 let selectedEmployeeId = 1;
-
-// ====== АВТОМАШИЧЕСКАЯ ПРОВЕРКА ПРАВ ПРИ ВХОДЕ ======
-// Секретный ключ для входа через браузер на ПК
-const ADMIN_SECRET_KEY = "limcash2026"; // Придумай свой пароль
+let isAuthorizedUser = false;
 
 window.addEventListener('DOMContentLoaded', () => {
   renderEmployeeSelect();
   calculate();
 
-  // Проверяем, есть ли секретный ключ в URL адресе (например: ?key=limcash2026)
+  // 1. Проверка входа по SECRET KEY в URL адресе
   const urlParams = new URLSearchParams(window.location.search);
   const secretKey = urlParams.get('key');
 
   if (secretKey === ADMIN_SECRET_KEY) {
-    openAdminOnlyView("⚙️ Админ (ПК)");
-    document.getElementById('ownerPanelCard').classList.remove('hidden'); // Открываем и панель владельца
+    isAuthorizedUser = true;
+    document.getElementById('ownerPanelCard').classList.remove('hidden');
+    openAdminOnlyView("👑 Владелец (ПК)");
     return;
   }
 
-  // Если открыто внутри Telegram
+  // 2. Проверка входа через Telegram Mini App
   if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.expand();
-    
+
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
 
-      // ВЛАДЕЛЕЦ
       if (user.id === OWNER_TG_ID) {
+        isAuthorizedUser = true;
         document.getElementById('ownerPanelCard').classList.remove('hidden');
         openAdminOnlyView("👑 Владелец");
         return;
       }
 
-      // СОТРУДНИК
       if (STAFF_TG_IDS.includes(user.id)) {
+        isAuthorizedUser = true;
         openAdminOnlyView("⚙️ Сотрудник");
         return;
       }
     }
   }
 
-  // Обычный клиент (Калькулятор)
-  switchTab('calc');
+  // Обычный гость: Админка остается скрытой
+  document.getElementById('tab-calc').classList.add('active');
+  document.getElementById('tab-admin').classList.remove('active');
 });
 
-// Переключение в режим "Только Админка" для сотрудников
 function openAdminOnlyView(roleTitle) {
   document.getElementById('userRoleBadge').innerText = roleTitle;
-  document.getElementById('mainNav').classList.add('hidden'); // Скрываем переключатель табов
-  switchTab('admin'); // Принудительно включаем только Админку
+  document.getElementById('tab-calc').classList.remove('active');
+  document.getElementById('tab-admin').classList.add('active');
 }
 
-// ====== ТАБЫ ======
-function switchTab(tabName) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-  if (tabName === 'calc') {
-    document.getElementById('btn-tab-calc')?.classList.add('active');
-    document.getElementById('tab-calc').classList.add('active');
-  } else {
-    document.getElementById('btn-tab-admin')?.classList.add('active');
-    document.getElementById('tab-admin').classList.add('active');
-  }
-}
-
-// ====== КАЛЬКУЛЯТОР И РЕНДЕР ======
+// ====== КАЛЬКУЛЯТОР ======
 function renderEmployeeSelect() {
   const listContainer = document.getElementById('employeeList');
+  if (!listContainer) return;
   listContainer.innerHTML = '';
 
   EMPLOYEES.forEach(emp => {
@@ -148,7 +131,9 @@ function selectEmployee(emp) {
 
 function toggleEmployeeDropdown(forceState) {
   const list = document.getElementById('employeeList');
-  list.classList.toggle('select-hide', forceState !== undefined ? !forceState : undefined);
+  if (list) {
+    list.classList.toggle('select-hide', forceState !== undefined ? !forceState : undefined);
+  }
 }
 
 function changeItemCount(delta) {
@@ -177,8 +162,13 @@ function executeCalculation() {
   document.getElementById('resultBox').classList.remove('hidden');
 }
 
-// ====== МОДАЛКИ АДМИНКИ ======
+// ====== МОДАЛКИ И АДМИНКА ======
 function openAdminModal(type) {
+  if (!isAuthorizedUser) {
+    alert("Ошибка: Доступ запрещен.");
+    return;
+  }
+
   const overlay = document.getElementById('modalOverlay');
   const body = document.getElementById('modalBody');
   overlay.classList.remove('hidden');
@@ -234,5 +224,6 @@ function closeModal() {
 }
 
 function updateWorkStatus(val) {
+  if (!isAuthorizedUser) return;
   alert(`Ваш рабочий статус изменен на: ${val}`);
 }
