@@ -1,18 +1,18 @@
 // ====== НАСТРОЙКИ ДОСТУПА ======
-const OWNER_TG_ID = 123456789; // 👈 Вставь свой Telegram ID
+const OWNER_TG_ID = 6860406379; // Твой Telegram ID (Владелец / John)
 
 const STAFF_TG_IDS = [
-  123456789,
-  987654321,
-  112233445
+  6860406379, // John (Владелец)
+  6546478411, // Сотрудник #2
+  6527279937  // Сотрудник #3
 ];
 
-const ADMIN_SECRET_KEY = "limcash2026"; // Ключ для входа с ПК через браузер
+const ADMIN_SECRET_KEY = "limcash2026"; // Ключ для входа в Админку с ПК через браузер
 
 const EMPLOYEES = [
   {
     id: 1,
-    tgId: 987654321,
+    tgId: 6860406379,
     username: "@John_Deyvy_Harris",
     phone: "+375 29 232 1077",
     name: "John Deyvy Harris",
@@ -24,7 +24,7 @@ const EMPLOYEES = [
   },
   {
     id: 2,
-    tgId: 112233445,
+    tgId: 6546478411,
     username: null,
     phone: "+375 29 504 2673",
     name: "Сотрудник #2",
@@ -33,29 +33,66 @@ const EMPLOYEES = [
     reviewsCount: 10,
     status: "ready",
     queueLength: 0
+  },
+  {
+    id: 3,
+    tgId: 6527279937,
+    username: null,
+    phone: null,
+    name: "Сотрудник #3",
+    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Worker3",
+    rating: 5.0,
+    reviewsCount: 5,
+    status: "ready",
+    queueLength: 0
   }
 ];
 
-const RATES = { USD: 1, EUR: 0.92, RUB: 90.0, BYN: 3.25 };
+// Резервные курсы (на случай, если API недоступно)
+let RATES = { 
+  USD: 1.0, 
+  EUR: 0.92, 
+  BYN: 3.25, 
+  RUB: 95.0 
+};
+
 let selectedEmployeeId = 1;
 let isAuthorizedUser = false;
 
+// ====== АВТО-ЗАГРУЗКА КУРСА ВАЛЮТ С API ======
+async function fetchExchangeRates() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data && data.rates) {
+      RATES.USD = 1.0;
+      RATES.EUR = data.rates.EUR || RATES.EUR;
+      RATES.BYN = data.rates.BYN || RATES.BYN;
+      RATES.RUB = data.rates.RUB || RATES.RUB;
+    }
+  } catch (err) {
+    console.warn("Не удалось подтянуть курс с API, используются встроенные значения", err);
+  } finally {
+    calculate(); // Пересчитываем калькулятор сразу после загрузки курсов
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   renderEmployeeSelect();
-  calculate();
+  fetchExchangeRates(); // Запрашиваем живые курсы
 
-  // 1. Проверка входа по SECRET KEY в URL адресе
+  const mainNav = document.getElementById('mainNav');
+
+  // 1. Вход по секретному ключу (для ПК)
   const urlParams = new URLSearchParams(window.location.search);
   const secretKey = urlParams.get('key');
 
   if (secretKey === ADMIN_SECRET_KEY) {
-    isAuthorizedUser = true;
-    document.getElementById('ownerPanelCard').classList.remove('hidden');
-    openAdminOnlyView("👑 Владелец (ПК)");
+    enableAdminAccess("👑 Владелец (ПК)", true);
     return;
   }
 
-  // 2. Проверка входа через Telegram Mini App
+  // 2. Вход через Telegram Mini App
   if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.expand();
@@ -64,29 +101,52 @@ window.addEventListener('DOMContentLoaded', () => {
       const user = tg.initDataUnsafe.user;
 
       if (user.id === OWNER_TG_ID) {
-        isAuthorizedUser = true;
-        document.getElementById('ownerPanelCard').classList.remove('hidden');
-        openAdminOnlyView("👑 Владелец");
+        enableAdminAccess("👑 Владелец", true);
         return;
       }
 
       if (STAFF_TG_IDS.includes(user.id)) {
-        isAuthorizedUser = true;
-        openAdminOnlyView("⚙️ Сотрудник");
+        enableAdminAccess("⚙️ Сотрудник", false);
         return;
       }
     }
   }
 
-  // Обычный гость: Админка остается скрытой
-  document.getElementById('tab-calc').classList.add('active');
-  document.getElementById('tab-admin').classList.remove('active');
+  // 3. Обычный Гость (Калькулятор)
+  if (mainNav) mainNav.classList.add('hidden');
+  switchTab('calc');
 });
 
-function openAdminOnlyView(roleTitle) {
+function enableAdminAccess(roleTitle, isOwner) {
+  isAuthorizedUser = true;
   document.getElementById('userRoleBadge').innerText = roleTitle;
-  document.getElementById('tab-calc').classList.remove('active');
-  document.getElementById('tab-admin').classList.add('active');
+  
+  const mainNav = document.getElementById('mainNav');
+  if (mainNav) mainNav.classList.remove('hidden');
+
+  if (isOwner) {
+    document.getElementById('ownerPanelCard').classList.remove('hidden');
+  }
+
+  switchTab('admin');
+}
+
+// ====== ТАБЫ ======
+function switchTab(tabName) {
+  if (tabName === 'admin' && !isAuthorizedUser) return;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+  if (tabName === 'calc') {
+    const btnCalc = document.getElementById('btn-tab-calc');
+    if (btnCalc) btnCalc.classList.add('active');
+    document.getElementById('tab-calc').classList.add('active');
+  } else {
+    const btnAdmin = document.getElementById('btn-tab-admin');
+    if (btnAdmin) btnAdmin.classList.add('active');
+    document.getElementById('tab-admin').classList.add('active');
+  }
 }
 
 // ====== КАЛЬКУЛЯТОР ======
@@ -101,7 +161,7 @@ function renderEmployeeSelect() {
     item.innerHTML = `
       <img src="${emp.avatar}" class="emp-avatar">
       <div class="emp-info">
-        <strong>${emp.name} (${emp.username || emp.phone})</strong>
+        <strong>${emp.name} (${emp.username || emp.phone || 'Сотрудник'})</strong>
         <span>⭐ ${emp.rating} (${emp.reviewsCount} отзывов) | ⏳ Очередь: ${emp.queueLength}</span>
       </div>
     `;
@@ -147,10 +207,16 @@ function calculate() {
   const count = parseInt(document.getElementById('itemCount').value) || 1;
   const curr = document.getElementById('currencySelect').value;
 
-  const totalBaseUSD = (amount * count) / RATES[curr];
+  const totalInputAmount = amount * count;
+  
+  // Рассчитываем эквивалент в USD, затем переводим в RUB по рыночному курсу
+  const totalBaseUSD = totalInputAmount / RATES[curr];
+  const totalRUB = totalBaseUSD * RATES.RUB;
 
-  document.getElementById('conversionBox').innerText = 
-    `Конвертация заказа: $${(totalBaseUSD * RATES.USD).toFixed(2)} / ${(totalBaseUSD * RATES.BYN).toFixed(2)} Br / ${(totalBaseUSD * RATES.RUB).toFixed(2)} ₽`;
+  const rubElement = document.getElementById('rubConversion');
+  if (rubElement) {
+    rubElement.innerText = `≈ ${totalRUB.toFixed(2)} ₽ (По реальному курсу)`;
+  }
 }
 
 function executeCalculation() {
@@ -164,10 +230,7 @@ function executeCalculation() {
 
 // ====== МОДАЛКИ И АДМИНКА ======
 function openAdminModal(type) {
-  if (!isAuthorizedUser) {
-    alert("Ошибка: Доступ запрещен.");
-    return;
-  }
+  if (!isAuthorizedUser) return;
 
   const overlay = document.getElementById('modalOverlay');
   const body = document.getElementById('modalBody');
