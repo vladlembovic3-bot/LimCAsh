@@ -52,30 +52,46 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 12px;
             z-index: 100;
             border-bottom: 1px solid var(--card-border);
         }
 
         .header-title {
             font-weight: 800;
-            font-size: 16px;
+            font-size: 15px;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .chats-btn {
+        /* Кнопки переключения для ПК/мобилок */
+        .nav-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .nav-btn {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
         }
 
-        /* Swiper Главный Контейнер */
+        .nav-btn:active {
+            background: var(--accent-purple);
+        }
+
+        /* Swiper Контейнер */
         .swiper {
             width: 100%;
             height: 100vh;
@@ -150,13 +166,17 @@
 </head>
 <body>
 
-    <!-- Шапка -->
+    <!-- Шапка с кнопками навигации -->
     <div class="app-header">
         <div class="header-title">ЛимКэш</div>
-        <div class="chats-btn">💬 Чаты</div>
+        
+        <div class="nav-controls">
+            <button class="nav-btn" id="btn-left">◀</button>
+            <button class="nav-btn" id="btn-right">▶</button>
+        </div>
     </div>
 
-    <!-- 3 Экрана (Свайпер) -->
+    <!-- 3 Экрана -->
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
             
@@ -238,7 +258,8 @@
     <div class="app-footer">
         ⚡ ЛимКэш v1.0 • Дизайнеры тоже люди — иногда им нужно попить кофе.
     </div>
-<script>
+
+    <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -248,22 +269,17 @@
                 initialSlide: 1,
                 speed: 300,
                 spaceBetween: 0,
-                
-                // Включаем ВСЕ возможные варианты управления для ПК:
-                grabCursor: true,          // Курсор-ручка для захвата
-                simulateTouch: true,       // Имитация пальца мышкой
-                touchEventsTarget: 'wrapper',
-                passiveListeners: false,
-                
-                // Стрелочки клавиатуры
-                keyboard: {
-                    enabled: true,
-                },
-                
-                // Колесико мыши (скролл влево/вправо мышкой)
-                mousewheel: {
-                    forceToAxis: true,
-                },
+                simulateTouch: true,
+                allowTouchMove: true
+            });
+
+            // Прямое управление через кнопки в шапке (для ПК)
+            document.getElementById('btn-left').addEventListener('click', function() {
+                swiper.slidePrev();
+            });
+
+            document.getElementById('btn-right').addEventListener('click', function() {
+                swiper.slideNext();
             });
         });
     </script>
