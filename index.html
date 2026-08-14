@@ -85,6 +85,8 @@
             cursor: pointer;
             font-size: 14px;
             transition: background 0.2s;
+            position: relative;
+            z-index: 999; /* Поверх всех слоев */
         }
 
         .nav-btn:active {
@@ -273,13 +275,24 @@
                 allowTouchMove: true
             });
 
-            // Прямое управление через кнопки в шапке (для ПК)
-            document.getElementById('btn-left').addEventListener('click', function() {
+            // Функция для гарантированного переключения
+            function goLeft(e) {
+                if (e) e.preventDefault();
                 swiper.slidePrev();
-            });
+            }
 
-            document.getElementById('btn-right').addEventListener('click', function() {
+            function goRight(e) {
+                if (e) e.preventDefault();
                 swiper.slideNext();
+            }
+
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+
+            // Навешиваем сразу и клик, и нажатие мыши/тача для ПК-клиентов
+            ['click', 'pointerdown'].forEach(evt => {
+                btnLeft.addEventListener(evt, goLeft);
+                btnRight.addEventListener(evt, goRight);
             });
         });
     </script>
