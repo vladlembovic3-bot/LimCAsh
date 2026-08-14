@@ -19,9 +19,10 @@
             --card-border: rgba(255, 255, 255, 0.08);
             --accent-purple: #8a2be2;
             --accent-gradient: linear-gradient(135deg, #8a2be2, #4a00e0);
+            --green-active: #2ecc71;
             --text-main: #ffffff;
             --text-muted: #8e8e93;
-            --green-active: #2ecc71;
+            --star-empty: rgba(255, 255, 255, 0.2);
         }
 
         * {
@@ -38,6 +39,15 @@
             overflow: hidden;
             height: 100vh;
             width: 100vw;
+        }
+
+        /* Анимации кнопок */
+        .btn-anim {
+            transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-anim:active {
+            transform: scale(0.95) !important;
         }
 
         /* Шапка */
@@ -68,7 +78,6 @@
         .nav-controls {
             display: flex;
             gap: 6px;
-            align-items: center;
         }
 
         .nav-btn {
@@ -81,19 +90,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             font-size: 14px;
-            position: relative;
-            z-index: 999;
-            transition: all 0.2s ease;
         }
 
-        .nav-btn:active {
-            transform: scale(0.92);
-            background: var(--accent-purple);
-        }
-
-        /* Swiper Контейнер */
+        /* Swiper */
         .swiper {
             width: 100%;
             height: 100vh;
@@ -101,31 +101,42 @@
         }
 
         .swiper-slide {
-            padding: 16px 16px 60px 16px;
+            padding: 16px 16px 70px 16px;
             overflow-y: auto;
             height: calc(100vh - 50px);
             box-sizing: border-box;
         }
 
         .page-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        /* Карточки */
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            padding: 16px;
+            padding: 14px;
             margin-bottom: 12px;
         }
 
-        /* Калькулятор элементы */
+        /* Звёзды отзывов */
+        .stars-outer {
+            display: inline-block;
+            color: var(--star-empty);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .stars-inner {
+            color: #f1c40f;
+        }
+
+        /* Переключатели и кнопки */
         .calc-group {
             display: flex;
             gap: 8px;
@@ -139,11 +150,9 @@
             border: 1px solid var(--card-border);
             color: var(--text-muted);
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
         }
 
         .toggle-btn.active {
@@ -170,7 +179,6 @@
             height: 32px;
             border-radius: 8px;
             font-size: 18px;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -181,7 +189,7 @@
             font-weight: 800;
             color: var(--green-active);
             text-align: center;
-            margin-top: 10px;
+            margin: 8px 0;
         }
 
         .submit-btn {
@@ -193,9 +201,95 @@
             color: #fff;
             font-weight: 700;
             font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
             box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+        }
+
+        .submit-btn.chat-ready {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        /* Список чатов */
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #222228;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #18181c;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            position: relative;
+            transform: scale(0.8);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            margin-top: 8px;
+            font-size: 13px;
         }
 
         .app-footer {
@@ -219,99 +313,130 @@
     <!-- Шапка -->
     <div class="app-header">
         <div class="header-title">ЛимКэш</div>
-        
         <div class="nav-controls">
-            <div class="nav-btn" onclick="navTo(0)">◀</div>
-            <div class="nav-btn" onclick="navTo(1)">🎯</div>
-            <div class="nav-btn" onclick="navTo(2)">▶</div>
+            <div class="nav-btn btn-anim" id="btn-left">◀</div>
+            <div class="nav-btn btn-anim" id="btn-center">🎯</div>
+            <div class="nav-btn btn-anim" id="btn-right">▶</div>
         </div>
     </div>
 
-    <!-- 3 Экрана -->
+    <!-- Swiper Контейнер -->
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
             
-            <!-- 👈 1. ЛЕВЫЙ ЭКРАН -->
+            <!-- 👈 1. ИНФО & ПОДДЕРЖКА / ВНУТРЕННИЙ ЧАТ -->
             <div class="swiper-slide">
-                <div class="page-title">🛡️ Инфо & Поддержка</div>
+                <div class="page-title">💬 Чаты и Поддержка</div>
                 
-                <div class="card">
-                    <h4>💬 Чат поддержки</h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Анонимная связь с администрацией сервиса.</p>
+                <!-- Поддержка (Ты) -->
+                <div class="chat-item btn-anim" style="border-color: var(--accent-purple);" onclick="openDirectChat('support')">
+                    <div class="chat-avatar" style="background: var(--accent-gradient);">👑</div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px;">Главный Админ / Поддержка</div>
+                        <div style="font-size: 11px; color: var(--green-active);">Онлайн • Быстрый ответ</div>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <h4>👨‍💻 Наша команда</h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Профили и статистика дизайнеров.</p>
-                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin: 14px 0 8px 4px; font-weight: 600;">ДИЗАЙНЕРЫ КОМАНДЫ:</div>
 
-                <div class="card">
-                    <h4>📜 Правила и Конфиденциальность</h4>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Защита сделок и персональных данных.</p>
-                </div>
+                <!-- Сотрудники -->
+                <div id="chats-list"></div>
             </div>
 
-            <!-- 🎯 2. ЦЕНТРАЛЬНЫЙ ЭКРАН -->
+            <!-- 🎯 2. ЛЕНТА ОТЗЫВОВ -->
             <div class="swiper-slide">
                 <div class="page-title">⭐ Лента Отзывов</div>
                 
-                <div class="card" style="border-left: 3px solid var(--accent-purple);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-weight: 600; font-size: 13px;">@seller_pro</span>
-                        <span style="color: var(--green-active);">★ 5.0</span>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 600; font-size: 13px;">@wb_seller</span>
+                        <div class="stars-outer">
+                            <span class="stars-inner">★★★★★</span>
+                        </div>
                     </div>
-                    <p style="font-size: 12px; color: #ddd; margin-bottom: 8px;">Отличная инфографика! Продажи выросли в 2 раза.</p>
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
-                        <span>Дизайнер: Влад</span>
-                        <span>12.08.2026</span>
-                    </div>
+                    <p style="font-size: 12px; color: #ddd;">Влад сделал пушечные карточки! CTR вырос моментально.</p>
                 </div>
 
-                <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    🚀 Скроллер-ракета появится здесь
-                </p>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 600; font-size: 13px;">@crypto_king</span>
+                        <div class="stars-outer">
+                            <span class="stars-inner">★★★★</span>☆
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: #ddd;">Качество на высоте, чуть задержали по срокам, но результат огненный.</p>
+                </div>
             </div>
 
-            <!-- 👉 3. ПРАВЫЙ ЭКРАН (КАЛЬКУЛЯТОР) -->
+            <!-- 👉 3. КАЛЬКУЛЯТОР ЗАКАЗА -->
             <div class="swiper-slide">
                 <div class="page-title">🧮 Калькулятор Заказа</div>
                 
+                <!-- Выбор сотрудника -->
+                <div class="card">
+                    <h4>1. Выберите дизайнера</h4>
+                    <div class="calc-group" id="workers-select"></div>
+                </div>
+
                 <!-- Валюта -->
                 <div class="card">
-                    <h4>1. Выбор валюты</h4>
+                    <h4>2. Валюта</h4>
                     <div class="calc-group">
-                        <div class="toggle-btn active" id="curr-byn" onclick="setCurrency('BYN')">BYN (Br)</div>
-                        <div class="toggle-btn" id="curr-rub" onclick="setCurrency('RUB')">RUB (₽)</div>
+                        <div class="toggle-btn btn-anim active" id="curr-byn">BYN (Br)</div>
+                        <div class="toggle-btn btn-anim" id="curr-rub">RUB (₽)</div>
                     </div>
                 </div>
 
-                <!-- Количество карточек -->
+                <!-- Количество -->
                 <div class="card">
-                    <h4>2. Количество карточек</h4>
+                    <h4>3. Количество карточек</h4>
                     <div class="calc-counter">
-                        <button class="cnt-btn" onclick="changeCount(-1)">-</button>
+                        <button class="cnt-btn btn-anim" id="btn-minus">-</button>
                         <span id="card-count" style="font-weight: 700; font-size: 16px;">1</span>
-                        <button class="cnt-btn" onclick="changeCount(1)">+</button>
+                        <button class="cnt-btn btn-anim" id="btn-plus">+</button>
                     </div>
                 </div>
 
-                <!-- Срочность -->
+                <!-- Сроки -->
                 <div class="card">
-                    <h4>3. Сроки исполнения</h4>
+                    <h4>4. Сроки выполнения</h4>
                     <div class="calc-group">
-                        <div class="toggle-btn active" id="speed-std" onclick="setSpeed('std')">Стандарт (2-3 дня)</div>
-                        <div class="toggle-btn" id="speed-fast" onclick="setSpeed('fast')">Срочно (+30%)</div>
+                        <div class="toggle-btn btn-anim active" id="speed-std">Стандарт</div>
+                        <div class="toggle-btn btn-anim" id="speed-fast">Срочно (+30%)</div>
                     </div>
                 </div>
 
-                <!-- Расчет стоимости -->
+                <!-- Итог -->
                 <div class="card">
                     <h4>Итоговая стоимость:</h4>
                     <div class="price-tag" id="total-price">15 BYN</div>
-                    <button class="submit-btn" onclick="sendOrder()">Заказать дизайн</button>
+                    <button class="submit-btn btn-anim" id="btn-calc-main">Рассчитать стоимость</button>
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- МОДАЛКА 1: Шуточный ценник -->
+    <div class="modal-overlay" id="modal-price">
+        <div class="modal-card">
+            <div class="modal-close" id="close-modal-1">✕</div>
+            <div style="font-size: 32px; margin-bottom: 8px;">🚀</div>
+            <h3 style="font-size: 16px; margin-bottom: 6px;">Расчёт готов!</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Итоговая сумма со всеми скидками составит:</p>
+            <div class="price-tag" id="modal-price-val">15 BYN</div>
+            <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px;">(Дизайнер уже готовит стилус и кофе)</p>
+            <button class="modal-btn btn-anim" id="btn-modal-confirm" style="background: var(--accent-gradient); color: #fff;">Подтвердить заказ ✅</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА 2: Выбор способа связи -->
+    <div class="modal-overlay" id="modal-contact">
+        <div class="modal-card">
+            <div class="modal-close" id="close-modal-2">✕</div>
+            <h3 style="font-size: 16px; margin-bottom: 12px;">Как свяжемся?</h3>
+            <button class="modal-btn btn-anim" id="btn-tg-direct" style="background: #209cee; color: #fff;">✈️ Написать в ТГ лично</button>
+            <button class="modal-btn btn-anim" id="btn-app-chat" style="background: var(--card-bg); border: 1px solid var(--card-border); color: #fff;">💬 Чат в Mini App</button>
         </div>
     </div>
 
@@ -325,52 +450,133 @@
         tg.ready();
         tg.expand();
 
+        // Данные сотрудников (Затем сможем менять их из Админки)
+        const team = [
+            { id: 'vlad', name: 'Влад', tg: 'vlad_designer', avatar: '👨‍🎨' },
+            { id: 'alex', name: 'Алексей', tg: 'alex_design', avatar: '🎨' },
+            { id: 'matvey', name: 'Матвей', tg: 'matvey_art', avatar: '⚡' }
+        ];
+
+        let selectedWorker = team[0];
+        let currency = 'BYN';
+        let count = 1;
+        let isFast = false;
+        let isCalculated = false;
         let swiper;
 
-        // Инициализируем сразу
-        function initApp() {
+        const basePrices = { BYN: 15, RUB: 450 };
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            renderWorkers();
+            
             swiper = new Swiper('.mySwiper', {
                 initialSlide: 1,
                 speed: 300,
                 spaceBetween: 0,
                 simulateTouch: true,
-                allowTouchMove: true,
-                observer: true,
-                observeParents: true
+                allowTouchMove: true
             });
 
-            // Принудительный сдвиг на центральный экран (Лента) через 100мс
-            setTimeout(() => {
-                if (swiper) swiper.slideTo(1, 0);
-            }, 100);
+            setTimeout(() => { if (swiper) swiper.slideTo(1, 0); }, 150);
+        });
+
+        // Отрисовка сотрудников
+        function renderWorkers() {
+            const selectContainer = document.getElementById('workers-select');
+            const chatsContainer = document.getElementById('chats-list');
+            
+            selectContainer.innerHTML = '';
+            chatsContainer.innerHTML = '';
+
+            team.forEach((worker, index) => {
+                // Кнопки калькулятора
+                const btn = document.createElement('div');
+                btn.className = `toggle-btn btn-anim ${index === 0 ? 'active' : ''}`;
+                btn.innerText = `${worker.avatar} ${worker.name}`;
+                btn.onclick = () => {
+                    document.querySelectorAll('#workers-select .toggle-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedWorker = worker;
+                };
+                selectContainer.appendChild(btn);
+
+                // Список в чате
+                const chatCard = document.createElement('div');
+                chatCard.className = 'chat-item btn-anim';
+                chatCard.onclick = () => openDirectChat(worker.tg);
+                chatCard.innerHTML = `
+                    <div class="chat-avatar">${worker.avatar}</div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px;">${worker.name}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Дизайнер • Telegram: @${worker.tg}</div>
+                    </div>
+                `;
+                chatsContainer.appendChild(chatCard);
+            });
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
+        // Перехватчик нажатий
+        window.addEventListener('pointerdown', (e) => {
+            const target = e.target.closest('[id]');
+            if (!target) return;
+            const id = target.id;
 
-        // Железобетонные функции навигации для onClick
-        function navTo(index) {
-            if (swiper) {
-                swiper.slideTo(index, 300);
+            if (id === 'btn-left') swiper.slideTo(0);
+            if (id === 'btn-center') swiper.slideTo(1);
+            if (id === 'btn-right') swiper.slideTo(2);
+
+            if (id === 'curr-byn') setCurrency('BYN');
+            if (id === 'curr-rub') setCurrency('RUB');
+            if (id === 'speed-std') setSpeed('std');
+            if (id === 'speed-fast') setSpeed('fast');
+            if (id === 'btn-minus') changeCount(-1);
+            if (id === 'btn-plus') changeCount(1);
+
+            // Кнопка расчёта / заказа
+            if (id === 'btn-calc-main') {
+                if (!isCalculated) {
+                    showModal('modal-price');
+                } else {
+                    showModal('modal-contact');
+                }
             }
+
+            // Закрытие модалок
+            if (id === 'close-modal-1' || id === 'btn-modal-confirm') {
+                hideModal('modal-price');
+                enableOrderButton();
+            }
+
+            if (id === 'close-modal-2') hideModal('modal-contact');
+
+            // Выбор связи
+            if (id === 'btn-tg-direct') {
+                hideModal('modal-contact');
+                tg.openTelegramLink(`https://t.me/${selectedWorker.tg}`);
+            }
+
+            if (id === 'btn-app-chat') {
+                hideModal('modal-contact');
+                swiper.slideTo(0); // Перенос в раздел чатов Mini App
+            }
+        });
+
+        function enableOrderButton() {
+            isCalculated = true;
+            const mainBtn = document.getElementById('btn-calc-main');
+            mainBtn.innerText = '🚀 Перейти к оформлению';
+            mainBtn.classList.add('chat-ready');
         }
-
-        // ЛОГИКА КАЛЬКУЛЯТОРА
-        let currency = 'BYN';
-        let count = 1;
-        let isFast = false;
-
-        const basePrices = { BYN: 15, RUB: 450 };
 
         function updateCalc() {
             let base = basePrices[currency] * count;
             if (isFast) base = Math.round(base * 1.3);
-            
             const symbol = currency === 'BYN' ? 'BYN' : '₽';
-            document.getElementById('total-price').innerText = `${base} ${symbol}`;
+            const priceStr = `${base} ${symbol}`;
+            
+            document.getElementById('total-price').innerText = priceStr;
+            document.getElementById('modal-price-val').innerText = priceStr;
             document.getElementById('card-count').innerText = count;
         }
 
@@ -395,9 +601,15 @@
             updateCalc();
         }
 
-        function sendOrder() {
-            const priceText = document.getElementById('total-price').innerText;
-            tg.showAlert(`Ваш заказ: ${count} карточка(ек) на сумму ${priceText}. Скоро свяжемся!`);
+        function showModal(id) { document.getElementById(id).classList.add('active'); }
+        function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function openDirectChat(username) {
+            if (username === 'support') {
+                tg.openTelegramLink('https://t.me/vladlembovic3'); // Твой профиль поддержки
+            } else {
+                tg.openTelegramLink(`https://t.me/${username}`);
+            }
         }
     </script>
 </body>
