@@ -1,0 +1,104 @@
+:root {
+  --bg-color: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.75);
+  --accent-color: #38bdf8;
+  --accent-hover: #0284c7;
+  --text-main: #f8fafc;
+  --text-sub: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  height: fit-content;
+}
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.logo { font-size: 1.4rem; font-weight: bold; color: var(--accent-color); }
+.badge { background: #334155; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: var(--accent-color); }
+
+.tab-nav { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab-btn {
+  flex: 1; padding: 12px; border: none; background: #1e293b; color: var(--text-sub);
+  border-radius: 12px; cursor: pointer; transition: 0.3s; font-weight: 600;
+}
+.tab-btn.active { background: var(--accent-color); color: #000; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px; }
+
+.input-row { display: flex; gap: 10px; }
+input, select {
+  width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border-color);
+  border-radius: 10px; color: var(--text-main); outline: none; font-size: 1rem;
+}
+input:focus, select:focus { border-color: var(--accent-color); }
+
+.counter-box { display: flex; align-items: center; gap: 10px; }
+.btn-counter {
+  width: 45px; height: 45px; background: var(--accent-color); border: none;
+  border-radius: 10px; font-size: 1.5rem; font-weight: bold; cursor: pointer; color: #000;
+}
+
+/* Dropdown */
+.custom-select { position: relative; cursor: pointer; }
+.select-selected { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
+.employee-item { display: flex; align-items: center; gap: 12px; }
+.emp-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+.emp-info { font-size: 0.85rem; }
+.emp-info span { color: var(--text-sub); display: block; }
+
+.select-items {
+  position: absolute; background: #1e293b; border: 1px solid var(--border-color);
+  top: 105%; left: 0; right: 0; z-index: 99; border-radius: 12px; max-height: 220px; overflow-y: auto;
+}
+.select-items div { padding: 10px; border-bottom: 1px solid var(--border-color); }
+.select-items div:hover { background: #334155; }
+.select-hide { display: none; }
+
+.conversion-preview { font-size: 0.85rem; color: var(--accent-color); margin-bottom: 15px; }
+
+.primary-btn {
+  width: 100%; padding: 14px; background: var(--accent-color); border: none;
+  border-radius: 10px; font-weight: bold; color: #000; font-size: 1rem; cursor: pointer;
+}
+.secondary-btn { width: 100%; padding: 8px; background: #334155; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
+
+.result-box { margin-top: 20px; padding: 15px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; text-align: center; }
+.final-price { font-size: 1.8rem; font-weight: bold; color: var(--accent-color); margin-top: 5px; }
+
+/* Admin Panel */
+.admin-menu { display: flex; flex-direction: column; gap: 12px; }
+.admin-card { background: #0f172a; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
+.admin-card:hover { border-color: var(--accent-color); }
+.admin-card-title { font-weight: bold; color: var(--text-main); }
+.admin-card-sub { font-size: 0.8rem; color: var(--text-sub); margin-top: 4px; }
+.owner-only { border-color: #f59e0b; background: rgba(245, 158, 11, 0.05); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+.modal-content { background: #1e293b; width: 100%; max-width: 450px; border-radius: 16px; padding: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
+.modal-close { position: absolute; top: 12px; right: 15px; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+
+.hidden { display: none !important; }
