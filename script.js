@@ -42,26 +42,39 @@ const RATES = { USD: 1, EUR: 0.92, RUB: 90.0, BYN: 3.25 };
 let selectedEmployeeId = 1;
 
 // ====== АВТОМАШИЧЕСКАЯ ПРОВЕРКА ПРАВ ПРИ ВХОДЕ ======
+// Секретный ключ для входа через браузер на ПК
+const ADMIN_SECRET_KEY = "limcash2026"; // Придумай свой пароль
+
 window.addEventListener('DOMContentLoaded', () => {
   renderEmployeeSelect();
   calculate();
 
+  // Проверяем, есть ли секретный ключ в URL адресе (например: ?key=limcash2026)
+  const urlParams = new URLSearchParams(window.location.search);
+  const secretKey = urlParams.get('key');
+
+  if (secretKey === ADMIN_SECRET_KEY) {
+    openAdminOnlyView("⚙️ Админ (ПК)");
+    document.getElementById('ownerPanelCard').classList.remove('hidden'); // Открываем и панель владельца
+    return;
+  }
+
+  // Если открыто внутри Telegram
   if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.expand();
     
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
-      document.getElementById('userRoleBadge').innerText = `@${user.username || user.id}`;
 
-      // ПРОВЕРКА 1: ВЛАДЕЛЕЦ
+      // ВЛАДЕЛЕЦ
       if (user.id === OWNER_TG_ID) {
         document.getElementById('ownerPanelCard').classList.remove('hidden');
         openAdminOnlyView("👑 Владелец");
         return;
       }
 
-      // ПРОВЕРКА 2: СОТРУДНИК / АДМИН
+      // СОТРУДНИК
       if (STAFF_TG_IDS.includes(user.id)) {
         openAdminOnlyView("⚙️ Сотрудник");
         return;
@@ -69,7 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Если зашел обычный клиент — открываем стандартный калькулятор
+  // Обычный клиент (Калькулятор)
   switchTab('calc');
 });
 
