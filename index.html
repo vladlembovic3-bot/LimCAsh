@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LimCash Web App</title>
-  <link rel="stylesheet" href="style.css">
-  
-  <!-- Telegram SDK -->
+  <link rel="stylesheet" href="style.css?v=2.0">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -14,28 +12,28 @@
   <div class="app-container">
     <!-- Шапка -->
     <header class="header">
-      <div class="logo">LimCash ⚡</div>
+      <div class="logo">LimCash 💎</div>
       <div id="userRoleBadge" class="badge">Гость</div>
     </header>
 
-    <!-- 3 ОСНОВНЫЕ ПАНЕЛИ -->
+    <!-- ОСНОВНЫЕ ПАНЕЛИ -->
     <nav class="tab-nav">
-      <button class="tab-btn active" id="btn-tab-calc" onclick="switchMainTab('calc')">🧮 Калькулятор</button>
-      <button class="tab-btn" id="btn-tab-reviews" onclick="switchMainTab('reviews')">⭐ Отзывы</button>
-      <button class="tab-btn" id="btn-tab-support" onclick="switchMainTab('support')">💬 Чат / Инфо</button>
+      <button type="button" class="tab-btn active" id="btn-tab-calc" onclick="switchMainTab('calc')">🧮 Калькулятор</button>
+      <button type="button" class="tab-btn" id="btn-tab-chats" onclick="switchMainTab('chats')">💬 Чаты</button>
+      <button type="button" class="tab-btn" id="btn-tab-reviews" onclick="switchMainTab('reviews')">⭐ Отзывы</button>
     </nav>
 
     <!-- ПАНЕЛЬ 1: КАЛЬКУЛЯТОР -->
     <main id="tab-calc" class="tab-content active">
-      <!-- Выбор сотрудника -->
       <div class="form-group">
         <label>Выберите сотрудника:</label>
-        <select id="employeeSelect" class="styled-select" onchange="onEmployeeSelectChange(this.value)">
-          <!-- Список подгрузится динамически -->
-        </select>
+        <div class="custom-select-wrapper">
+          <select id="employeeSelect" class="custom-select" onchange="calculate()">
+            <!-- Подгрузка из JS -->
+          </select>
+        </div>
       </div>
 
-      <!-- Количество товаров -->
       <div class="form-group">
         <label>Количество товаров:</label>
         <div class="counter-box">
@@ -45,101 +43,105 @@
         </div>
       </div>
 
-      <!-- Сумма сделки и Валюта (Только BYN и RUB) -->
       <div class="form-group">
         <label>Сумма сделки:</label>
         <div class="input-row">
           <input type="number" id="amountInput" placeholder="0.00" oninput="calculate()">
-          <select id="currencySelect" class="styled-select" onchange="calculate()">
-            <option value="BYN">BYN (Br)</option>
-            <option value="RUB">RUB (₽)</option>
-          </select>
+          <div class="custom-select-wrapper currency-wrap">
+            <select id="currencySelect" class="custom-select" onchange="calculate()">
+              <option value="BYN">BYN (Br)</option>
+              <option value="RUB">RUB (₽)</option>
+            </select>
+          </div>
         </div>
-        <div class="rub-preview" id="rubConversion">≈ 0.00 ₽ (По курсу)</div>
+        <div class="rub-preview" id="rubConversion">≈ 0.00 ₽</div>
       </div>
 
-      <button type="button" class="primary-btn" onclick="executeCalculation()">Рассчитать</button>
+      <button type="button" class="primary-btn" onclick="executeCalculationAndOpenChat()">Рассчитать и перейти в чат</button>
+    </main>
 
-      <div class="result-box hidden" id="resultBox">
-        <h3>Итог к оплате:</h3>
-        <div class="final-price" id="finalPriceDisplay">0.00 BYN</div>
+    <!-- ПАНЕЛЬ 2: ЧАТЫ (Сверху Поддержка, ниже Диалоги) -->
+    <main id="tab-chats" class="tab-content">
+      <!-- Список диалогов -->
+      <div id="chatsListSection">
+        <div class="chat-item pinned-support" onclick="openChatRoom('support', 'Служба Поддержки', 'https://api.dicebear.com/7.x/bottts/svg?seed=Support')">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Support" class="chat-avatar">
+          <div class="chat-info">
+            <strong>🎧 Служба Поддержки</strong>
+            <span>Нажмите для связи с администратором</span>
+          </div>
+          <span class="pin-badge">Закреплено</span>
+        </div>
+
+        <div class="chats-divider">Мои обращения и заказы:</div>
+        <div id="dynamicChatsList">
+          <!-- Сюда добавляются чаты после калькулятора -->
+        </div>
+      </div>
+
+      <!-- Окно открытого чата -->
+      <div id="chatRoomSection" class="chat-room hidden">
+        <div class="chat-room-header">
+          <button type="button" class="back-btn" onclick="closeChatRoom()">⬅</button>
+          <img id="chatHeaderAvatar" src="" class="chat-avatar-small">
+          <div class="chat-header-user">
+            <strong id="chatHeaderName">Сотрудник</strong>
+            <span id="chatHeaderSub">В очереди: 0 чел.</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessagesBox">
+          <!-- Сообщения -->
+        </div>
+
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Введите сообщение..." onkeypress="handleChatKeyPress(event)">
+          <button type="button" class="send-btn" onclick="sendChatMessage()">➔</button>
+        </div>
       </div>
     </main>
 
-    <!-- ПАНЕЛЬ 2: ОТЗЫВЫ (Возвращён стиль V1) -->
+    <!-- ПАНЕЛЬ 3: ОТЗЫВЫ -->
     <main id="tab-reviews" class="tab-content">
       <div class="reviews-header">
         <h3>Отзывы покупателей</h3>
         <span class="rating-avg">⭐ 4.9 / 5.0</span>
       </div>
-      
-      <div class="reviews-list" id="publicReviewsList">
-        <!-- Карточки отзывов в стиле первой версии -->
-      </div>
-    </main>
-
-    <!-- ПАНЕЛЬ 3: ЧАТ И ИНФОРМАЦИЯ -->
-    <main id="tab-support" class="tab-content">
-      <div class="info-card">
-        <h3>ℹ️ О сервисе</h3>
-        <p>Быстрая и безопасная покупка/продажа игровых ценностей.</p>
-      </div>
-
-      <!-- ВСТРОЕННЫЙ ЧАТ ПОДДЕРЖКИ -->
-      <div class="chat-container">
-        <div class="chat-header">💬 Онлайн-Чат Поддержки</div>
-        <div class="chat-messages" id="chatMessages">
-          <div class="msg system">Оператор на связи. Напишите ваш вопрос ниже:</div>
-        </div>
-        <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="Введите сообщение..." onkeypress="handleChatKeyPress(event)">
-          <button class="send-btn" onclick="sendChatMessage()">➔</button>
-        </div>
-      </div>
+      <div class="reviews-list" id="publicReviewsList"></div>
     </main>
 
     <!-- СКРЫТАЯ АДМИН-ПАНЕЛЬ -->
     <main id="tab-admin" class="tab-content">
       <div class="admin-menu">
-        <div class="admin-card" onclick="openAdminModal('orders')">
-          <div class="admin-card-title">📦 1. Очередь заказов</div>
-          <div class="admin-card-sub">Заказы, выдача прав и товаров</div>
+        <div class="admin-card" onclick="openOrdersQueueModal()">
+          <div class="admin-card-title">📦 1. Очередь заказов (Биржа)</div>
+          <div class="admin-card-sub">Взять активный заказ клиентов в работу</div>
         </div>
 
         <div class="admin-card">
-          <div class="admin-card-title">🟢 2. Состояние на работе</div>
-          <select id="workStatusSelect" onchange="updateWorkStatus(this.value)" class="styled-select" style="margin-top: 8px;">
+          <div class="admin-card-title">🟢 2. Мой рабочий статус</div>
+          <select id="workStatusSelect" onchange="updateWorkStatus(this.value)" class="custom-select" style="margin-top:8px;">
             <option value="ready">🟢 Готов к работе</option>
             <option value="rest">🟡 Отдых</option>
             <option value="inactive">🔴 Неактивен</option>
           </select>
         </div>
 
-        <div class="admin-card" onclick="openAdminModal('chats')">
-          <div class="admin-card-title">💬 3. Чаты клиентов</div>
-          <div class="admin-card-sub">Диалоги с покупателями</div>
-        </div>
-
-        <div class="admin-card" onclick="openAdminModal('my-reviews')">
-          <div class="admin-card-title">⭐ 4. Мои Отзывы</div>
-          <div class="admin-card-sub">Личный рейтинг и оценки</div>
-        </div>
-
-        <div class="admin-card owner-only hidden" id="ownerPanelCard" onclick="openAdminModal('owner-moderation')">
-          <div class="admin-card-title">👑 5. Модерация (Владелец)</div>
-          <div class="admin-card-sub">Управление чатами и отзывами</div>
+        <div class="admin-card owner-only hidden" id="ownerPanelCard">
+          <div class="admin-card-title">👑 3. Модерация (Владелец)</div>
+          <div class="admin-card-sub">Полный доступ к диалогам и удаление сообщений</div>
         </div>
       </div>
     </main>
 
-    <!-- КНОПКА ВХОДА В АДМИНКУ ВНИЗУ (Для Владельца и Админов) -->
+    <!-- НИЖНЯЯ КНОПКА (ТОЛЬКО ДЛЯ АДМИНОВ/ВЛАДЕЛЬЦА) -->
     <div id="adminFooterBtn" class="admin-footer hidden">
       <button type="button" class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️ Панель Управления</button>
     </div>
 
   </div>
 
-  <!-- МОДАЛЬНЫЕ ОКНА -->
+  <!-- МОДАЛКА ОЧЕРЕДИ ЗАКАЗОВ -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal-content">
       <button type="button" class="modal-close" onclick="closeModal()">✕</button>
@@ -147,6 +149,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=2.0"></script>
 </body>
 </html>
