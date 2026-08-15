@@ -1,12 +1,12 @@
 :root {
-  --bg-color: #0b0714;
-  --card-bg: #140d24;
-  --accent-color: #a855f7;
-  --accent-glow: #c084fc;
+  --bg-color: #0d0718;
+  --card-bg: #160d29;
+  --accent-color: #8b5cf6;
+  --accent-glow: #a78bfa;
   --text-main: #f3e8ff;
-  --text-sub: #a855f7;
-  --border-color: #2e1065;
-  --btn-bg: #22153b;
+  --text-sub: #c4b5fd;
+  --border-color: #2e1b4e;
+  --input-bg: #090412;
 }
 
 * {
@@ -24,139 +24,130 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 12px;
+  padding: 10px;
 }
 
 .app-container {
   width: 100%;
-  max-width: 440px;
+  max-width: 420px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 20px;
-  padding: 18px;
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.2);
+  padding: 16px;
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.25);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .logo {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--accent-glow);
-  text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
 }
 
 .badge {
-  background: var(--btn-bg);
+  background: #251240;
   border: 1px solid var(--border-color);
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--accent-glow);
 }
 
-/* Навигация */
 .tab-nav {
   display: flex;
   gap: 6px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 10px 4px;
+  padding: 10px 2px;
   border: 1px solid var(--border-color);
-  background: var(--btn-bg);
-  color: #d8b4fe;
+  background: #1f1138;
+  color: var(--text-sub);
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.82rem;
-  transition: all 0.2s ease;
 }
 
 .tab-btn.active {
   background: var(--accent-color);
   color: #fff;
   border-color: var(--accent-glow);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
 }
 
-.tab-content {
-  display: none;
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-.tab-content.active {
-  display: block;
-}
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.82rem; color: var(--text-sub); margin-bottom: 6px; }
 
-/* Элементы форм */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.85rem;
-  color: #d8b4fe;
-  margin-bottom: 6px;
-}
-
-.input-row {
-  display: flex;
-  gap: 8px;
-}
-
-input, select.styled-select {
+/* Кастомные красивый селекты без вылезания */
+.custom-select-wrapper { position: relative; width: 100%; }
+.custom-select {
   width: 100%;
   padding: 12px;
-  background: #0d0718;
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   color: var(--text-main);
   outline: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  appearance: none;
+  cursor: pointer;
 }
 
-input:focus, select.styled-select:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+.custom-select option {
+  background: #160d29;
+  color: #fff;
 }
 
-.counter-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.input-row { display: flex; gap: 8px; }
+.input-row input {
+  flex: 1;
+  padding: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: #fff;
+  outline: none;
 }
 
+.currency-wrap { width: 110px; }
+
+.counter-box { display: flex; gap: 8px; align-items: center; }
 .counter-box input {
   text-align: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: #fff;
+  padding: 10px;
+  width: 100%;
 }
 
 .btn-counter {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   background: var(--accent-color);
   border: none;
   border-radius: 12px;
-  font-size: 1.4rem;
+  color: #fff;
+  font-size: 1.3rem;
   font-weight: bold;
   cursor: pointer;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
 }
 
-.rub-preview {
-  font-size: 0.85rem;
-  color: var(--accent-glow);
-  margin-top: 6px;
-  font-weight: 500;
-}
+.rub-preview { font-size: 0.85rem; color: var(--accent-glow); margin-top: 6px; }
 
 .primary-btn {
   width: 100%;
@@ -164,108 +155,73 @@ input:focus, select.styled-select:focus {
   background: var(--accent-color);
   border: none;
   border-radius: 12px;
-  font-weight: bold;
   color: #fff;
-  font-size: 1rem;
+  font-weight: bold;
+  font-size: 0.95rem;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+  margin-top: 5px;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
 }
 
-.result-box {
-  margin-top: 15px;
-  padding: 14px;
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid var(--accent-color);
-  border-radius: 12px;
-  text-align: center;
+/* Список чатов */
+.pinned-support {
+  border: 1px solid var(--accent-color) !important;
+  background: rgba(139, 92, 246, 0.15) !important;
 }
 
-.final-price {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: var(--accent-glow);
-}
-
-/* ОТЗЫВЫ (Стиль 1-й версии) */
-.reviews-header {
+.chat-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-}
-
-.rating-avg {
-  color: #f59e0b;
-  font-weight: bold;
-}
-
-.v1-review-card {
-  background: #0d0718;
+  gap: 12px;
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
   padding: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
 }
 
-.v1-review-top {
+.chat-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.chat-avatar-small { width: 32px; height: 32px; border-radius: 50%; }
+
+.chat-info { flex: 1; }
+.chat-info strong { display: block; font-size: 0.9rem; color: #fff; }
+.chat-info span { font-size: 0.75rem; color: var(--text-sub); }
+
+.pin-badge { font-size: 0.7rem; background: var(--accent-color); color: #fff; padding: 2px 6px; border-radius: 6px; }
+
+.chats-divider { font-size: 0.78rem; color: var(--text-sub); margin: 12px 0 6px 4px; }
+
+/* Окно активного чата */
+.chat-room {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 360px;
+}
+
+.chat-room-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
-}
-
-.v1-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--accent-color);
-}
-
-.v1-author-info strong {
-  display: block;
-  font-size: 0.9rem;
-  color: #fff;
-}
-
-.v1-author-info span {
-  font-size: 0.75rem;
-  color: #f59e0b;
-}
-
-.v1-review-text {
-  font-size: 0.88rem;
-  color: #d8b4fe;
-  line-height: 1.3;
-}
-
-/* ЧАТ */
-.info-card {
-  background: #0d0718;
-  border: 1px solid var(--border-color);
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.chat-container {
-  background: #0d0718;
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  height: 280px;
-}
-
-.chat-header {
-  background: var(--btn-bg);
   padding: 10px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: var(--accent-glow);
+  background: #1f1138;
   border-bottom: 1px solid var(--border-color);
+  border-radius: 16px 16px 0 0;
 }
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.chat-header-user strong { display: block; font-size: 0.85rem; }
+.chat-header-user span { font-size: 0.72rem; color: var(--accent-glow); }
 
 .chat-messages {
   flex: 1;
@@ -276,139 +232,52 @@ input:focus, select.styled-select:focus {
   gap: 8px;
 }
 
+.msg-wrapper { display: flex; flex-direction: column; max-width: 85%; }
+.msg-wrapper.user { align-self: flex-end; }
+.msg-wrapper.bot { align-self: flex-start; }
+
 .msg {
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 0.85rem;
-  max-width: 85%;
   word-break: break-word;
 }
 
-.msg.system {
-  background: rgba(168, 85, 247, 0.15);
-  color: #d8b4fe;
-  align-self: center;
-  font-size: 0.78rem;
-  text-align: center;
-}
+.msg-wrapper.user .msg { background: var(--accent-color); color: #fff; }
+.msg-wrapper.bot .msg { background: #251240; color: #fff; border: 1px solid var(--border-color); }
 
-.msg.user {
-  background: var(--accent-color);
-  color: #fff;
+.msg-delete-btn {
+  font-size: 0.68rem;
+  color: #ef4444;
+  cursor: pointer;
+  margin-top: 2px;
+  background: none;
+  border: none;
   align-self: flex-end;
 }
 
-.msg.bot {
-  background: #22153b;
-  color: #fff;
-  align-self: flex-start;
-  border: 1px solid var(--border-color);
-}
+.chat-input-row { display: flex; gap: 6px; padding: 8px; background: #160d29; border-top: 1px solid var(--border-color); border-radius: 0 0 16px 16px; }
+.chat-input-row input { flex: 1; padding: 8px 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 10px; color: #fff; outline: none; }
+.send-btn { background: var(--accent-color); border: none; color: #fff; padding: 0 14px; border-radius: 10px; cursor: pointer; }
 
-.chat-input-row {
-  display: flex;
-  padding: 8px;
-  background: #140d24;
-  border-top: 1px solid var(--border-color);
-  gap: 6px;
-}
-
-.chat-input-row input {
-  padding: 8px 12px;
-  font-size: 0.85rem;
-}
-
-.send-btn {
-  background: var(--accent-color);
-  border: none;
-  color: #fff;
-  padding: 0 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
+/* Отзывы */
+.reviews-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.rating-avg { color: #f59e0b; font-weight: bold; }
+.v1-review-card { background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+.v1-review-top { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+.v1-avatar { width: 34px; height: 34px; border-radius: 50%; }
 
 /* Админка */
-.admin-footer {
-  margin-top: 15px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--border-color);
-}
-
-.admin-toggle-btn {
-  width: 100%;
-  padding: 12px;
-  background: #f59e0b;
-  border: none;
-  border-radius: 12px;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.admin-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.admin-card {
-  background: #0d0718;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-}
-
-.admin-card-title {
-  font-weight: bold;
-  color: #fff;
-}
-
-.admin-card-sub {
-  font-size: 0.78rem;
-  color: #d8b4fe;
-  margin-top: 2px;
-}
-
-.owner-only {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
-}
+.admin-footer { margin-top: 15px; padding-top: 12px; border-top: 1px dashed var(--border-color); }
+.admin-toggle-btn { width: 100%; padding: 12px; background: #f59e0b; border: none; border-radius: 12px; color: #000; font-weight: bold; cursor: pointer; }
+.admin-menu { display: flex; flex-direction: column; gap: 10px; }
+.admin-card { background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
+.admin-card-title { font-weight: bold; color: #fff; font-size: 0.9rem; }
+.admin-card-sub { font-size: 0.78rem; color: var(--text-sub); margin-top: 2px; }
 
 /* Модалка */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  padding: 15px;
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 15px; }
+.modal-content { background: #160d29; width: 100%; max-width: 400px; border-radius: 16px; border: 1px solid var(--border-color); padding: 16px; position: relative; }
+.modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
 
-.modal-content {
-  background: #140d24;
-  width: 100%;
-  max-width: 400px;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  padding: 18px;
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
