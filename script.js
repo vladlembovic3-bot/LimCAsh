@@ -1,95 +1,58 @@
-// ====== НАСТРОЙКИ ДОСТУПА ======
-const OWNER_TG_ID = 6860406379; // John (Владелец)
-
-const STAFF_TG_IDS = [
-  6860406379, // John (Владелец)
-  6546478411, // Сотрудник #2
-  6527279937  // Сотрудник #3
-];
-
-const ADMIN_SECRET_KEY = "limcash2026"; // Ключ для ПК
+const OWNER_TG_ID = 6860406379;
+const STAFF_TG_IDS = [6860406379, 6546478411, 6527279937];
+const ADMIN_SECRET_KEY = "limcash2026";
 
 const EMPLOYEES = [
-  {
-    id: 1,
-    name: "John Deyvy Harris",
-    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=John",
-    rating: 4.9,
-    reviewsCount: 18,
-    queueLength: 2
-  },
-  {
-    id: 2,
-    name: "Сотрудник #2",
-    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Worker2",
-    rating: 5.0,
-    reviewsCount: 10,
-    queueLength: 0
-  },
-  {
-    id: 3,
-    name: "Сотрудник #3",
-    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Worker3",
-    rating: 5.0,
-    reviewsCount: 5,
-    queueLength: 0
-  }
+  { id: 1, name: "John Deyvy Harris", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=John", rating: 4.9, queueLength: 2 },
+  { id: 2, name: "Сотрудник #2", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Worker2", rating: 5.0, queueLength: 0 },
+  { id: 3, name: "Сотрудник #3", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Worker3", rating: 5.0, queueLength: 0 }
 ];
 
-// ОТЗЫВЫ В СТИЛЕ 1-Й ВЕРСИИ
 const V1_REVIEWS = [
-  { author: "@crypto_man", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", rating: 5, text: "Всё супер! Быстро оформили и выдали товар.", date: "Вчера" },
-  { author: "@minsk_buyer", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Minsk", rating: 5, text: "Лучший курс и мгновенный ответ от John.", date: "12 авг" },
-  { author: "@vlad_88", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vlad", rating: 4.8, text: "Хороший сервис, рекомендую к сотрудничеству.", date: "10 авг" }
+  { author: "@crypto_man", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex", rating: 5, text: "Всё супер! Быстро оформили.", date: "Вчера" },
+  { author: "@minsk_buyer", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Minsk", rating: 5, text: "Лучший курс и быстро зачислили.", date: "12 авг" }
 ];
 
-// Фиксированный курс RUB/BYN для расчёта (можно менять при желании)
-let EXCHANGE_RATE_BYN_TO_RUB = 29.2; 
+// Активные заказы на бирже для селлеров
+let ORDERS_QUEUE = [
+  { id: 101, client: "@alex_game", amount: "50.00 BYN", item: "3 Ключа активации", status: "Свободен" },
+  { id: 102, client: "@dmitry_m", amount: "1200.00 RUB", item: "Игровая валюта", status: "Свободен" }
+];
+
+let activeUserChats = [];
+let currentActiveChatId = null;
 let isAuthorizedUser = false;
 let isAdminViewOpen = false;
 
 window.addEventListener('DOMContentLoaded', () => {
-  renderEmployeeSelectOptions();
-  renderV1Reviews();
+  renderEmployeesSelect();
+  renderReviews();
   calculate();
 
-  // 1. Вход через ПК по ключу ?key=limcash2026
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('key') === ADMIN_SECRET_KEY) {
     enableStaffFeatures("👑 Владелец (ПК)", true);
     return;
   }
 
-  // 2. Вход через Telegram Mini App
   if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.expand();
-
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const user = tg.initDataUnsafe.user;
-      if (user.id === OWNER_TG_ID) {
-        enableStaffFeatures("👑 Владелец", true);
-        return;
-      }
-      if (STAFF_TG_IDS.includes(user.id)) {
-        enableStaffFeatures("⚙️ Сотрудник", false);
-        return;
-      }
+      const u = tg.initDataUnsafe.user;
+      if (u.id === OWNER_TG_ID) enableStaffFeatures("👑 Владелец", true);
+      else if (STAFF_TG_IDS.includes(u.id)) enableStaffFeatures("⚙️ Сотрудник", false);
     }
   }
 });
 
-function enableStaffFeatures(roleTitle, isOwner) {
+function enableStaffFeatures(title, isOwner) {
   isAuthorizedUser = true;
-  document.getElementById('userRoleBadge').innerText = roleTitle;
+  document.getElementById('userRoleBadge').innerText = title;
   document.getElementById('adminFooterBtn').classList.remove('hidden');
-
-  if (isOwner) {
-    document.getElementById('ownerPanelCard').classList.remove('hidden');
-  }
+  if (isOwner) document.getElementById('ownerPanelCard').classList.remove('hidden');
 }
 
-// ПЕРЕКЛЮЧЕНИЕ 3-Х ГЛАВНЫХ ПАНЕЛЕЙ
 function switchMainTab(tabName) {
   isAdminViewOpen = false;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -99,10 +62,8 @@ function switchMainTab(tabName) {
   document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
-// ВХОД И ВЫХОД ИЗ АДМИНКИ (Нижняя кнопка)
 function toggleAdminPanel() {
   if (!isAuthorizedUser) return;
-
   const adminTab = document.getElementById('tab-admin');
   const btn = document.querySelector('.admin-toggle-btn');
 
@@ -110,7 +71,7 @@ function toggleAdminPanel() {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     adminTab.classList.add('active');
-    btn.innerText = "⬅️ Вернуться на Главную";
+    btn.innerText = "⬅️ На Главную";
     isAdminViewOpen = true;
   } else {
     switchMainTab('calc');
@@ -119,21 +80,15 @@ function toggleAdminPanel() {
 }
 
 // ====== КАЛЬКУЛЯТОР ======
-function renderEmployeeSelectOptions() {
+function renderEmployeesSelect() {
   const select = document.getElementById('employeeSelect');
-  if (!select) return;
   select.innerHTML = '';
-
-  EMPLOYEES.forEach(emp => {
+  EMPLOYEES.forEach(e => {
     const opt = document.createElement('option');
-    opt.value = emp.id;
-    opt.innerText = `${emp.name} (⭐ ${emp.rating} | Очередь: ${emp.queueLength})`;
+    opt.value = e.id;
+    opt.innerText = `${e.name} (⭐ ${e.rating} | В очереди: ${e.queueLength})`;
     select.appendChild(opt);
   });
-}
-
-function onEmployeeSelectChange(val) {
-  calculate();
 }
 
 function changeItemCount(delta) {
@@ -146,52 +101,111 @@ function calculate() {
   const amount = parseFloat(document.getElementById('amountInput').value) || 0;
   const count = parseInt(document.getElementById('itemCount').value) || 1;
   const curr = document.getElementById('currencySelect').value;
-
   const total = amount * count;
-  const rubElem = document.getElementById('rubConversion');
 
+  const rubElem = document.getElementById('rubConversion');
   if (curr === 'BYN') {
-    const inRub = total * EXCHANGE_RATE_BYN_TO_RUB;
-    rubElem.innerText = `≈ ${inRub.toFixed(2)} ₽`;
+    rubElem.innerText = `≈ ${(total * 29.2).toFixed(2)} ₽`;
   } else {
-    const inByn = total / EXCHANGE_RATE_BYN_TO_RUB;
-    rubElem.innerText = `≈ ${inByn.toFixed(2)} Br`;
+    rubElem.innerText = `≈ ${(total / 29.2).toFixed(2)} Br`;
   }
 }
 
-function executeCalculation() {
+function executeCalculationAndOpenChat() {
+  const empId = parseInt(document.getElementById('employeeSelect').value);
+  const emp = EMPLOYEES.find(e => e.id === empId);
   const amount = parseFloat(document.getElementById('amountInput').value) || 0;
   const count = parseInt(document.getElementById('itemCount').value) || 1;
   const curr = document.getElementById('currencySelect').value;
 
-  document.getElementById('finalPriceDisplay').innerText = `${(amount * count).toFixed(2)} ${curr}`;
-  document.getElementById('resultBox').classList.remove('hidden');
+  if (amount <= 0) {
+    alert("Введите сумму сделки!");
+    return;
+  }
+
+  // Создаём или находим чат с сотрудником
+  let chat = activeUserChats.find(c => c.id === emp.id);
+  if (!chat) {
+    chat = { id: emp.id, name: emp.name, avatar: emp.avatar, queue: emp.queueLength, messages: [] };
+    activeUserChats.push(chat);
+  }
+
+  chat.messages.push({
+    sender: 'bot',
+    text: `📦 Заказ сформирован: ${count} шт. на сумму ${(amount * count).toFixed(2)} ${curr}. Ожидайте ответа сотрудника.`
+  });
+
+  renderUserChatsList();
+  switchMainTab('chats');
+  openChatRoom(chat.id, chat.name, chat.avatar, chat.queue);
 }
 
-// ====== РЕНДЕР ОТЗЫВОВ V1 ======
-function renderV1Reviews() {
-  const container = document.getElementById('publicReviewsList');
-  if (!container) return;
+// ====== ЧАТЫ ======
+function renderUserChatsList() {
+  const container = document.getElementById('dynamicChatsList');
   container.innerHTML = '';
 
-  V1_REVIEWS.forEach(rev => {
-    const card = document.createElement('div');
-    card.className = 'v1-review-card';
-    card.innerHTML = `
-      <div class="v1-review-top">
-        <img src="${rev.avatar}" class="v1-avatar">
-        <div class="v1-author-info">
-          <strong>${rev.author}</strong>
-          <span>${"⭐".repeat(Math.floor(rev.rating))} (${rev.date})</span>
-        </div>
+  activeUserChats.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'chat-item';
+    item.onclick = () => openChatRoom(c.id, c.name, c.avatar, c.queue);
+    item.innerHTML = `
+      <img src="${c.avatar}" class="chat-avatar">
+      <div class="chat-info">
+        <strong>${c.name}</strong>
+        <span>Очередь: ${c.queue} чел.</span>
       </div>
-      <p class="v1-review-text">${rev.text}</p>
     `;
-    container.appendChild(card);
+    container.appendChild(item);
   });
 }
 
-// ====== ЧАТ ПОДДЕРЖКИ ======
+function openChatRoom(id, name, avatar, queue = 0) {
+  currentActiveChatId = id;
+  document.getElementById('chatsListSection').classList.add('hidden');
+  document.getElementById('chatRoomSection').classList.remove('hidden');
+
+  document.getElementById('chatHeaderAvatar').src = avatar;
+  document.getElementById('chatHeaderName').innerText = name;
+  document.getElementById('chatHeaderSub').innerText = id === 'support' ? 'Онлайн-администратор' : `В очереди: ${queue} чел.`;
+
+  renderChatMessages();
+}
+
+function closeChatRoom() {
+  document.getElementById('chatRoomSection').classList.add('hidden');
+  document.getElementById('chatsListSection').classList.remove('hidden');
+}
+
+function renderChatMessages() {
+  const box = document.getElementById('chatMessagesBox');
+  box.innerHTML = '';
+
+  let messages = [];
+  if (currentActiveChatId === 'support') {
+    if (!window.supportMessages) window.supportMessages = [{ sender: 'bot', text: 'Здравствуйте! Чем можем помочь?' }];
+    messages = window.supportMessages;
+  } else {
+    const chat = activeUserChats.find(c => c.id === currentActiveChatId);
+    if (chat) messages = chat.messages;
+  }
+
+  messages.forEach((m, index) => {
+    const wrap = document.createElement('div');
+    wrap.className = `msg-wrapper ${m.sender === 'user' ? 'user' : 'bot'}`;
+
+    let delBtnHtml = isAuthorizedUser ? `<button class="msg-delete-btn" onclick="deleteMessage(${index})">Удалить</button>` : '';
+
+    wrap.innerHTML = `
+      <div class="msg">${m.text}</div>
+      ${delBtnHtml}
+    `;
+    box.appendChild(wrap);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
 function handleChatKeyPress(e) {
   if (e.key === 'Enter') sendChatMessage();
 }
@@ -201,50 +215,73 @@ function sendChatMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  const msgBox = document.getElementById('chatMessages');
-
-  // Сообщение пользователя
-  const userMsg = document.createElement('div');
-  userMsg.className = 'msg user';
-  userMsg.innerText = text;
-  msgBox.appendChild(userMsg);
+  if (currentActiveChatId === 'support') {
+    window.supportMessages.push({ sender: 'user', text });
+  } else {
+    const chat = activeUserChats.find(c => c.id === currentActiveChatId);
+    if (chat) chat.messages.push({ sender: 'user', text });
+  }
 
   input.value = '';
-  msgBox.scrollTop = msgBox.scrollHeight;
-
-  // Авто-ответ бота через секунду
-  setTimeout(() => {
-    const botMsg = document.createElement('div');
-    botMsg.className = 'msg bot';
-    botMsg.innerText = "Спасибо! Ваше сообщение отправлено оператору. Ожидайте ответа.";
-    msgBox.appendChild(botMsg);
-    msgBox.scrollTop = msgBox.scrollHeight;
-  }, 1000);
+  renderChatMessages();
 }
 
-// ====== МОДАЛКИ ======
-function openAdminModal(type) {
-  if (!isAuthorizedUser) return;
+function deleteMessage(index) {
+  if (currentActiveChatId === 'support') {
+    window.supportMessages.splice(index, 1);
+  } else {
+    const chat = activeUserChats.find(c => c.id === currentActiveChatId);
+    if (chat) chat.messages.splice(index, 1);
+  }
+  renderChatMessages();
+}
+
+// ====== ОЧЕРЕДЬ ЗАКАЗОВ (БИРЖА) ======
+function openOrdersQueueModal() {
   const overlay = document.getElementById('modalOverlay');
   const body = document.getElementById('modalBody');
   overlay.classList.remove('hidden');
 
-  if (type === 'orders') {
-    body.innerHTML = `<h3>📦 Очередь заказов</h3><p style="margin-top:10px; color:#d8b4fe;">Заказ #104 — Ключи активации (3 шт)</p>`;
-  } else if (type === 'chats') {
-    body.innerHTML = `<h3>💬 Активные чаты</h3><p style="margin-top:10px; color:#d8b4fe;">Диалог с @seller_alex</p>`;
-  } else if (type === 'my-reviews') {
-    body.innerHTML = `<h3>⭐ Мои Отзывы</h3><p style="margin-top:10px; color:#d8b4fe;">⭐ 5.0 — @alex_top</p>`;
-  } else if (type === 'owner-moderation') {
-    body.innerHTML = `<h3 style="color:#f59e0b;">👑 Панель Модерации</h3><p style="margin-top:10px; color:#d8b4fe;">Управление всеми отзывами и чатами</p>`;
-  }
+  let listHtml = ORDERS_QUEUE.map(o => `
+    <div style="background:#090412; border:1px solid #2e1b4e; padding:10px; border-radius:10px; margin-top:8px;">
+      <strong>Заказ #${o.id} (${o.client})</strong><br>
+      <small style="color:#c4b5fd">${o.item} — ${o.amount}</small><br>
+      <button class="primary-btn" style="padding:6px; margin-top:6px; font-size:0.8rem;" onclick="takeOrder(${o.id})">Принять заказ в работу</button>
+    </div>
+  `).join('');
+
+  body.innerHTML = `<h3>📦 Биржа заказов</h3>${listHtml || '<p style="margin-top:10px;">Нет свободных заказов</p>'}`;
+}
+
+function takeOrder(orderId) {
+  alert(`Вы успешно взяли заказ #${orderId}! Диалог создан.`);
+  closeModal();
 }
 
 function closeModal() {
   document.getElementById('modalOverlay').classList.add('hidden');
 }
 
+function renderReviews() {
+  const container = document.getElementById('publicReviewsList');
+  container.innerHTML = '';
+  V1_REVIEWS.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'v1-review-card';
+    card.innerHTML = `
+      <div class="v1-review-top">
+        <img src="${r.avatar}" class="v1-avatar">
+        <div>
+          <strong>${r.author}</strong>
+          <span style="color:#f59e0b; font-size:0.75rem;">${"⭐".repeat(r.rating)} (${r.date})</span>
+        </div>
+      </div>
+      <p style="font-size:0.85rem; color:#c4b5fd;">${r.text}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
 function updateWorkStatus(val) {
-  if (!isAuthorizedUser) return;
-  alert(`Статус изменен на: ${val}`);
+  alert(`Статус изменён на: ${val}`);
 }
