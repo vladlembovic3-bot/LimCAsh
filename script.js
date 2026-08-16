@@ -1,5 +1,5 @@
 // ВАЖНО: Вставьте сюда ссылку, которую выдаст Render.com!
-const SERVER_URL = "https://limcash-backend.onrender.com"; 
+const SERVER_URL = "https://cdc97337d9123e.lhr.life"; 
 const socket = io(SERVER_URL);
 
 const OWNER_TG_ID = 6860406379;
