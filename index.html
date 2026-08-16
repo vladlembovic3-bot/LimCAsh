@@ -2,144 +2,158 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LimCash Mini App</title>
-  <link rel="stylesheet" href="style.css?v=7.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>LimCash - Telegram Mini App</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-
   <div class="app-container">
-    <header class="header">
-      <div class="logo">LimCash 💎</div>
-      <div id="userRoleBadge" class="badge">Гость</div>
+
+    <!-- Шапка приложения -->
+    <header class="app-header">
+      <div class="logo">LimCash</div>
+      <div id="role-badge" class="badge">Загрузка...</div>
     </header>
 
-    <!-- ВКЛАДКИ НАВИГАЦИИ (ЧАТ ВЫНЕСЕН В 4-Ю ВКЛАДКУ) -->
-    <nav class="tab-nav" id="mainNav">
-      <button type="button" class="tab-btn" id="btn-tab-contacts" onclick="switchMainTab('contacts')">📞 Контакты</button>
-      <button type="button" class="tab-btn active" id="btn-tab-reviews" onclick="switchMainTab('reviews')">⭐ Отзывы</button>
-      <button type="button" class="tab-btn" id="btn-tab-calc" onclick="switchMainTab('calc')">🧮 Калькулятор</button>
-      <button type="button" class="tab-btn" id="btn-tab-chat" onclick="switchMainTab('chat')">💬 Чат</button>
-    </nav>
+    <!-- Основной контент (Вкладки) -->
+    <main class="content">
 
-    <div id="mainViewsContainer">
-      <!-- ВКЛАДКА 1: КОНТАКТЫ -->
-      <main id="tab-contacts" class="tab-content">
-        <div class="contact-card">
-          <h3>📱 Связь с нами</h3>
-          <p class="sub-text">Официальные контакты LimCash:</p>
-          <div class="contact-list">
-            <div class="contact-item"><strong>Поддержка:</strong> @limcash_support</div>
-            <div class="contact-item"><strong>Канал:</strong> @limcash_news</div>
-            <div class="contact-item"><strong>Текущий курс:</strong> <span id="rateDisplay">Загрузка...</span></div>
-          </div>
-        </div>
-      </main>
+      <!-- Вкладка 1: Главная / Калькулятор -->
+      <section id="tab-calculator" class="tab-content active">
+        <div class="card">
+          <h2>Рассчитать стоимость</h2>
 
-      <!-- ВКЛАДКА 2: ОТЗЫВЫ -->
-      <main id="tab-reviews" class="tab-content active">
-        <div class="reviews-header">
-          <h3>Отзывы покупателей</h3>
-          <button type="button" id="openReviewBtn" class="sm-btn" onclick="openAddReviewModal()">+ Написать отзыв</button>
-        </div>
-        <div class="reviews-list" id="publicReviewsList"></div>
-      </main>
-
-      <!-- ВКЛАДКА 3: КАЛЬКУЛЯТОР -->
-      <main id="tab-calc" class="tab-content">
-        <div class="form-group">
-          <label>Выберите сотрудника:</label>
-          <div class="custom-dropdown-container" id="employeeDropdown" onclick="toggleDropdown()">
-            <div class="dropdown-selected" id="dropdownSelected"></div>
-            <div class="dropdown-menu hidden" id="dropdownMenu"></div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="label-with-limits"><label>Количество карточек:</label></div>
-          <div class="counter-box">
-            <button type="button" class="btn-counter" onclick="changeCount('cardCount', -1, 1, 150)">-</button>
-            <input type="number" id="cardCount" value="1" readonly onchange="recalculateTotal()">
-            <button type="button" class="btn-counter" onclick="changeCount('cardCount', 1, 1, 150)">+</button>
-          </div>
-        </div>
-
-        <!-- Вывод сумм: BYN фиксировано, RUB динамически -->
-        <div class="calc-total-box">
-          <div class="calc-total-label">Итоговая стоимость:</div>
-          <div class="calc-total-rates">
-            <div class="calc-total-amount" id="totalAmountDisplayBYN">0 BYN</div>
-            <div class="calc-total-sub" id="totalAmountDisplayRUB">~ 0 ₽</div>
-          </div>
-        </div>
-
-        <button type="button" class="primary-btn" onclick="openCalcModal()">Заказать</button>
-      </main>
-
-      <!-- ВКЛАДКА 4: ОТДЕЛЬНЫЙ ЧАТ -->
-      <main id="tab-chat" class="tab-content">
-        <div id="chatSectionContainer">
-          <div id="tgChatList" class="tg-chat-list">
-            <div class="chats-divider">Ваши активные чаты:</div>
-            <div id="dynamicChatsContainer"></div>
+          <div class="form-group">
+            <label for="staff-select">Выберите сотрудника:</label>
+            <select id="staff-select" class="input-control">
+              <!-- Заполняется из JS -->
+            </select>
           </div>
 
-          <div id="tgChatRoom" class="tg-chat-room hidden">
-            <div class="chat-room-bar">
-              <button type="button" class="back-btn" onclick="backToChatsList()">⬅</button>
-              <img id="chatRoomAvatar" class="chat-avatar-small" src="" alt="Avatar">
-              <div class="chat-room-info">
-                <strong id="chatRoomName">Чат</strong>
-                <span id="chatRoomSub">В сети</span>
-              </div>
-              <button type="button" id="chatPaidBtn" class="sm-btn success hidden" onclick="markOrderPaid()">Разрешить отзыв / Оплачено</button>
-            </div>
-
-            <div class="chat-messages" id="chatMessagesBox"></div>
-
-            <div class="chat-input-row">
-              <input type="text" id="chatInput" placeholder="Сообщение..." onkeypress="handleChatKeyPress(event)">
-              <button type="button" class="send-btn" onclick="sendChatMessage()">➔</button>
+          <div class="form-group">
+            <label>Количество карточек:</label>
+            <div class="counter-control">
+              <button type="button" id="btn-minus" class="counter-btn">-</button>
+              <input type="number" id="cards-count" value="1" min="1" readonly class="counter-input">
+              <button type="button" id="btn-plus" class="counter-btn">+</button>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
 
-    <!-- АДМИН-ПАНЕЛЬ -->
-    <main id="adminView" class="admin-container hidden">
-      <div class="admin-header"><h3>⚙️ Панель Управления</h3></div>
-      <div class="admin-menu">
-        <div class="admin-card" onclick="openAdminModal('status')">
-          <div class="admin-card-title">🟢 Статус сотрудников</div>
-          <div class="admin-card-sub">Изменить статус готовности</div>
+          <div class="price-box">
+            <span>Итоговая стоимость:</span>
+            <div class="price-values">
+              <div id="price-byn" class="byn-text">5 BYN</div>
+              <div id="price-rub" class="rub-text">~ 143 ₽</div>
+            </div>
+          </div>
+
+          <button id="calc-action-btn" class="btn-primary full-width">Рассчитать</button>
         </div>
-        <div class="admin-card" onclick="openAdminModal('moderation')">
-          <div class="admin-card-title">🛡️ Модерация отзывов</div>
-          <div class="admin-card-sub">Проверка отзывов перед публикацией</div>
+      </section>
+
+      <!-- Вкладка 2: Отзывы -->
+      <section id="tab-reviews" class="tab-content">
+        <div class="section-header">
+          <h2>Отзывы покупателей</h2>
+          <button id="add-review-btn" class="btn-secondary" style="display: none;">+ Написать отзыв</button>
         </div>
-        <div class="admin-card" onclick="openAdminModal('finance')">
-          <div class="admin-card-title">💰 Финансы & Статистика</div>
-          <div class="admin-card-sub">Счетчик выполненных карточек</div>
+        <div id="reviews-list" class="reviews-grid">
+          <!-- Динамические отзывы -->
         </div>
-      </div>
+      </section>
+
+      <!-- Вкладка 3: Панель управления (Владелец / Сотрудники) -->
+      <section id="tab-admin" class="tab-content">
+        <h2>Панель управления</h2>
+
+        <!-- Раздел Финансов -->
+        <div class="card">
+          <h3>Финансовая сводка</h3>
+          <div id="finance-grid" class="finance-grid">
+            <!-- Динамически рендерится из JS -->
+          </div>
+        </div>
+
+        <!-- Управление заказами -->
+        <div class="card">
+          <h3>Список заказов</h3>
+          <div id="orders-list" class="orders-list">
+            <!-- Динамический список заказов -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Вкладка 4: Чат -->
+      <section id="tab-chat" class="tab-content">
+        <div class="chat-container">
+          <div id="chat-messages" class="chat-messages">
+            <!-- Сообщения чата -->
+          </div>
+          <div class="chat-input-box">
+            <input type="text" id="chat-input" placeholder="Введите сообщение..." class="input-control">
+            <button id="chat-send-btn" class="btn-primary">Отправить</button>
+          </div>
+        </div>
+      </section>
+
     </main>
 
-    <div id="adminFooterBtn" class="admin-footer hidden">
-      <button type="button" id="adminToggleBtn" class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️ Панель Управления</button>
-    </div>
+    <!-- Навигация снизу (4 вкладки) -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="tab-calculator">
+        <span class="icon">🧮</span>
+        <span class="label">Заказ</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-reviews">
+        <span class="icon">⭐</span>
+        <span class="label">Отзывы</span>
+      </button>
+      <button class="nav-btn" id="nav-admin-btn" data-tab="tab-admin" style="display: none;">
+        <span class="icon">📊</span>
+        <span class="label">Панель</span>
+      </button>
+      <button class="nav-btn" data-tab="tab-chat">
+        <span class="icon">💬</span>
+        <span class="label">Чат</span>
+      </button>
+    </nav>
 
   </div>
 
-  <div id="modalOverlay" class="modal-overlay hidden">
-    <div class="modal-content">
-      <button type="button" class="modal-close" onclick="closeModal()">✕</button>
-      <div id="modalBody"></div>
+  <!-- Модальное окно подтверждения расчета -->
+  <div id="calc-modal" class="modal-overlay style-hidden">
+    <div class="modal-card">
+      <h3>Подтверждение расчета</h3>
+      <p>Количество карточек: <b id="modal-cards-count">1</b></p>
+      <p>Итого к оплате: <b id="modal-price-byn">5 BYN</b> (<span id="modal-price-rub">~143 ₽</span>)</p>
+      <div class="modal-actions">
+        <button id="modal-confirm-btn" class="btn-primary">Подтвердить</button>
+        <button id="modal-cancel-btn" class="btn-close">✕</button>
+      </div>
     </div>
   </div>
 
-  <script src="script.js?v=7.0"></script>
+  <!-- Модальное окно создания отзыва -->
+  <div id="review-modal" class="modal-overlay style-hidden">
+    <div class="modal-card">
+      <h3>Оставить отзыв</h3>
+      <div class="form-group">
+        <label>Оценка (1-5):</label>
+        <input type="number" id="review-rating" value="5" min="1" max="5" class="input-control">
+      </div>
+      <div class="form-group">
+        <label>Ваш отзыв:</label>
+        <textarea id="review-text" rows="3" class="input-control"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="review-submit-btn" class="btn-primary">Отправить</button>
+        <button id="review-cancel-btn" class="btn-close">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
