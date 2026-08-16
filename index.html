@@ -16,17 +16,17 @@
       <div id="userRoleBadge" class="badge">Гость</div>
     </header>
 
-    <!-- НАВИГАЦИЯ: Контакты (слева), Отзывы (по центру), Калькулятор (справа) -->
+    <!-- НАВИГАЦИЯ -->
     <nav class="tab-nav" id="mainNav">
       <button type="button" class="tab-btn" id="btn-tab-contacts" onclick="switchMainTab('contacts')">📞 Контакты</button>
       <button type="button" class="tab-btn active" id="btn-tab-reviews" onclick="switchMainTab('reviews')">⭐ Отзывы</button>
       <button type="button" class="tab-btn" id="btn-tab-calc" onclick="switchMainTab('calc')">🧮 Калькулятор</button>
     </nav>
 
-    <!-- ОСНОВНАЯ ОБЛАСТЬ (Скрывается при открытии Админки или Чата) -->
+    <!-- ОСНОВНАЯ ОБЛАСТЬ -->
     <div id="mainViewsContainer">
       
-      <!-- ВКТАДКА 1: КОНТАКТЫ -->
+      <!-- ВКЛАДКА 1: КОНТАКТЫ -->
       <main id="tab-contacts" class="tab-content">
         <div class="contact-card">
           <h3>📱 Связь с нами</h3>
@@ -39,11 +39,11 @@
         </div>
       </main>
 
-      <!-- ВКЛАДКА 2: ОТЗЫВЫ (Открывается по умолчанию) -->
+      <!-- ВКЛАДКА 2: ОТЗЫВЫ -->
       <main id="tab-reviews" class="tab-content active">
         <div class="reviews-header">
           <h3>Отзывы покупателей</h3>
-          <button type="button" class="sm-btn" onclick="openAddReviewModal()">+ Написать отзыв</button>
+          <button type="button" id="openReviewBtn" class="sm-btn" onclick="openAddReviewModal()">+ Написать отзыв</button>
         </div>
         <div class="reviews-list" id="publicReviewsList">
           <!-- Динамические отзывы -->
@@ -56,16 +56,12 @@
         <div class="form-group">
           <label>Выберите сотрудника:</label>
           <div class="custom-dropdown-container" id="employeeDropdown" onclick="toggleDropdown()">
-            <div class="dropdown-selected" id="dropdownSelected">
-              <!-- Заполняется из JS -->
-            </div>
-            <div class="dropdown-menu hidden" id="dropdownMenu">
-              <!-- Список сотрудников -->
-            </div>
+            <div class="dropdown-selected" id="dropdownSelected"></div>
+            <div class="dropdown-menu hidden" id="dropdownMenu"></div>
           </div>
         </div>
 
-        <!-- Количество товаров (макс 30, мин 1) -->
+        <!-- Количество товаров -->
         <div class="form-group">
           <div class="label-with-limits">
             <label>Количество товаров:</label>
@@ -78,7 +74,7 @@
           </div>
         </div>
 
-        <!-- Количество карточек (макс 150, мин 1) -->
+        <!-- Количество карточек -->
         <div class="form-group">
           <div class="label-with-limits">
             <label>Количество карточек:</label>
@@ -91,18 +87,12 @@
           </div>
         </div>
 
-        <!-- Сумма сделки -->
-        <div class="form-group">
-          <label>Сумма сделки:</label>
-          <input type="number" id="amountInput" class="custom-input" placeholder="0.00">
-        </div>
-
         <button type="button" class="primary-btn" onclick="openCalcModal()">Рассчитать</button>
       </main>
 
     </div>
 
-    <!-- АДМИН-ПАНЕЛЬ (Полностью скрывает основной интерфейс) -->
+    <!-- АДМИН-ПАНЕЛЬ -->
     <main id="adminView" class="admin-container hidden">
       <div class="admin-header">
         <h3>⚙️ Панель Управления</h3>
@@ -126,7 +116,7 @@
 
         <div class="admin-card" onclick="openAdminModal('finance')">
           <div class="admin-card-title">💰 4. Финансы & Касса</div>
-          <div class="admin-card-sub">Подсчёт оформленных и сданных заказов</div>
+          <div class="admin-card-sub">Подсчёт карточек и выплат</div>
         </div>
 
         <div class="admin-card" onclick="openTelegramChatOverlay()">
@@ -136,26 +126,25 @@
 
         <div class="admin-card" onclick="openAdminModal('moderation')">
           <div class="admin-card-title">🛡️ 6. Модерация</div>
-          <div class="admin-card-sub">Проверка отзывов и связь с поддержкой</div>
+          <div class="admin-card-sub">Проверка отзывов</div>
         </div>
       </div>
     </main>
 
-    <!-- НИЖНЯЯ КНОПКА (Панель управления) -->
+    <!-- НИЖНЯЯ КНОПКА ПАНЕЛИ УПРАВЛЕНИЯ -->
     <div id="adminFooterBtn" class="admin-footer hidden">
       <button type="button" id="adminToggleBtn" class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️ Панель Управления</button>
     </div>
 
   </div>
 
-  <!-- ТЕЛЕГРАМ-ЧАТ ОВЕРЛЕЙ (Открывается поверх всего приложения) -->
+  <!-- ТЕЛЕГРАМ-ЧАТ ОВЕРЛЕЙ -->
   <div id="tgChatOverlay" class="tg-chat-overlay hidden">
     <div class="tg-chat-header">
       <button type="button" class="back-btn" onclick="closeTelegramChatOverlay()">⬅ Назад</button>
       <div class="tg-chat-title" id="tgChatTitle">Чат Telegram</div>
     </div>
     
-    <!-- Список чатов -->
     <div id="tgChatList" class="tg-chat-list">
       <div class="chat-item pinned-support" onclick="openSpecificChat('support', 'Служба Поддержки', 'https://api.dicebear.com/7.x/bottts/svg?seed=Support')">
         <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Support" class="chat-avatar">
@@ -169,7 +158,6 @@
       <div id="dynamicChatsContainer"></div>
     </div>
 
-    <!-- Окно конкретного диалога -->
     <div id="tgChatRoom" class="tg-chat-room hidden">
       <div class="chat-room-bar">
         <button type="button" class="back-btn" onclick="backToChatsList()">⬅</button>
@@ -178,7 +166,7 @@
           <strong id="chatRoomName">Чат</strong>
           <span id="chatRoomSub">В сети</span>
         </div>
-        <button type="button" id="chatPaidBtn" class="sm-btn success hidden" onclick="markOrderPaid()">Оплачено</button>
+        <button type="button" id="chatPaidBtn" class="sm-btn success hidden" onclick="markOrderPaid()">Отметить «Оплачено»</button>
       </div>
 
       <div class="chat-messages" id="chatMessagesBox"></div>
@@ -190,7 +178,7 @@
     </div>
   </div>
 
-  <!-- ЕДИНАЯ МОДАЛКА -->
+  <!-- МОДАЛКА -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal-content">
       <button type="button" class="modal-close" onclick="closeModal()">✕</button>
