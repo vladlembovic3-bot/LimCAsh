@@ -1,4 +1,4 @@
-const SERVER_URL = "https://82768f7526f1f5.lhr.life"; // Измените при смене туннеля
+const SERVER_URL = "https://2e3e509238a126.lhr.life"; // Измените при смене туннеля
 const socket = io(SERVER_URL);
 
 let tg = window.Telegram?.WebApp;
