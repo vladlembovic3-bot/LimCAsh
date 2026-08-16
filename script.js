@@ -1,386 +1,369 @@
-// ВАЖНО: Вставьте сюда ссылку, которую выдаст Render.com!
-const SERVER_URL = "https://cdc97337d9123e.lhr.life"; 
+const SERVER_URL = "https://82768f7526f1f5.lhr.life"; // Измените при смене туннеля
 const socket = io(SERVER_URL);
 
-const OWNER_TG_ID = 6860406379;
-const STAFF_TG_IDS = [6860406379, 6546478411, 6527279937];
-const ADMIN_SECRET_KEY = "limcash2026";
+let tg = window.Telegram?.WebApp;
+if (tg) tg.expand();
 
-// Фиксированная стоимость 1 карточки в BYN
-const BASE_BYN_PER_CARD = 5; 
+// Данные текущего пользователя
+let currentUser = tg?.initDataUnsafe?.user || { id: 6860406379, first_name: "Владелец (Тест)" };
 
-let currentUser = {
-  id: "user_" + Math.random().toString(36).substr(2, 7),
-  username: "Пользователь",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Guest"
-};
+let currentRole = 'client';
+let currentRate = 28.5;
+let staffList = [];
+let appState = { orders: [], reviews: [], messages: [] };
 
-let serverState = {
-  currencyRates: { BYN_RUB: 28.5 },
-  employees: [],
-  ordersQueue: [],
-  publicReviews: [],
-  pendingReviews: [],
-  chats: {},
-  allowedToReview: {}
-};
+let isCalculated = false;
+let calculatedData = null;
 
-let selectedEmployeeId = 1;
-let currentChatId = null;
-let isAuthorizedUser = false;
-let isAdminViewOpen = false;
+// Элементы UI
+const roleBadge = document.getElementById('role-badge');
+const staffSelect = document.getElementById('staff-select');
+const cardsCountInput = document.getElementById('cards-count');
+const btnMinus = document.getElementById('btn-minus');
+const btnPlus = document.getElementById('btn-plus');
+const priceByn = document.getElementById('price-byn');
+const priceRub = document.getElementById('price-rub');
+const calcActionBtn = document.getElementById('calc-action-btn');
+const addReviewBtn = document.getElementById('add-review-btn');
+const navAdminBtn = document.getElementById('nav-admin-btn');
 
-// Подключение WebSockets
-socket.on('init_state', (state) => { serverState = state; updateUI(); });
-socket.on('state_update', (state) => { serverState = state; updateUI(); });
+// Подключение и авторизация
+socket.emit('auth', currentUser);
 
-window.addEventListener('DOMContentLoaded', () => {
-  initTelegramData();
-  recalculateTotal();
+socket.on('initData', (data) => {
+  currentRole = data.role;
+  currentRate = data.rubRate;
+  staffList = data.staffList;
+  appState = data.state;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('key') === ADMIN_SECRET_KEY) {
-    enableStaffFeatures("👑 Владелец (ПК)");
-  }
+  renderRoleBadge();
+  renderStaffList();
+  updatePriceDisplay();
+  renderAppState();
 });
 
-function initTelegramData() {
-  if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const u = tg.initDataUnsafe.user;
-      currentUser.id = u.id;
-      currentUser.username = u.username ? `@${u.username}` : (u.first_name || "Пользователь");
-      currentUser.avatar = u.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`;
+socket.on('stateUpdate', (newState) => {
+  appState = newState;
+  renderAppState();
+});
 
-      if (STAFF_TG_IDS.includes(u.id)) enableStaffFeatures("⚙️ Сотрудник");
-    }
-  }
+socket.on('newMessage', (msg) => {
+  appState.messages.push(msg);
+  renderMessages();
+});
+
+// Переключение вкладок
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetTab = btn.getAttribute('data-tab');
+    switchTab(targetTab);
+  });
+});
+
+function switchTab(tabId) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+  const activeNav = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+  const activeTab = document.getElementById(tabId);
+
+  if (activeNav) activeNav.classList.add('active');
+  if (activeTab) activeTab.classList.add('active');
 }
 
-function enableStaffFeatures(title) {
-  isAuthorizedUser = true;
-  document.getElementById('userRoleBadge').innerText = title;
-  document.getElementById('adminFooterBtn').classList.remove('hidden');
-}
-
-function updateUI() {
-  renderDropdown();
-  renderPublicReviews();
-  recalculateTotal();
-  renderChatsList();
-  if (currentChatId) renderMessages();
-
-  const rateElem = document.getElementById('rateDisplay');
-  if (rateElem && serverState.currencyRates) {
-    rateElem.innerText = `1 BYN = ${serverState.currencyRates.BYN_RUB} ₽`;
-  }
-}
-
-function switchMainTab(tabName) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-  document.getElementById(`btn-tab-${tabName}`).classList.add('active');
-  document.getElementById(`tab-${tabName}`).classList.add('active');
-}
-
-function toggleAdminPanel() {
-  const mainViews = document.getElementById('mainViewsContainer');
-  const mainNav = document.getElementById('mainNav');
-  const adminView = document.getElementById('adminView');
-  const btn = document.getElementById('adminToggleBtn');
-
-  if (!isAdminViewOpen) {
-    mainViews.classList.add('hidden');
-    mainNav.classList.add('hidden');
-    adminView.classList.remove('hidden');
-    btn.innerText = "⬅️ Вернуться в Приложение";
-    isAdminViewOpen = true;
+// Отображение роли
+function renderRoleBadge() {
+  if (currentRole === 'owner') {
+    roleBadge.textContent = 'Владелец';
+    navAdminBtn.style.display = 'flex';
+  } else if (currentRole === 'staff') {
+    roleBadge.textContent = 'Сотрудник';
+    navAdminBtn.style.display = 'flex';
   } else {
-    adminView.classList.add('hidden');
-    mainViews.classList.remove('hidden');
-    mainNav.classList.remove('hidden');
-    btn.innerText = "⚙️ Панель Управления";
-    isAdminViewOpen = false;
+    roleBadge.textContent = 'Клиент';
+    navAdminBtn.style.display = 'none';
   }
 }
 
-// Расчет суммы (BYN фиксировано, RUB от ежедневного курса)
-function changeCount(id, delta, min, max) {
-  const input = document.getElementById(id);
-  let val = (parseInt(input.value) || min) + delta;
-  if (val < min) val = min;
-  if (val > max) val = max;
-  input.value = val;
-  recalculateTotal();
+// Заполнение списка сотрудников
+function renderStaffList() {
+  staffSelect.innerHTML = '';
+  staffList.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    staffSelect.appendChild(opt);
+  });
 }
 
-function recalculateTotal() {
-  const cardCount = parseInt(document.getElementById('cardCount').value) || 1;
-  const totalBYN = cardCount * BASE_BYN_PER_CARD;
-  const rate = serverState.currencyRates ? parseFloat(serverState.currencyRates.BYN_RUB) : 28.5;
-  const totalRUB = Math.round(totalBYN * rate);
+// Управление счетчиком карточек
+btnMinus.onclick = () => {
+  let val = parseInt(cardsCountInput.value) || 1;
+  if (val > 1) {
+    cardsCountInput.value = val - 1;
+    resetCalculation();
+  }
+};
 
-  document.getElementById('totalAmountDisplayBYN').innerText = `${totalBYN} BYN`;
-  document.getElementById('totalAmountDisplayRUB').innerText = `~ ${totalRUB.toLocaleString('ru-RU')} ₽`;
+btnPlus.onclick = () => {
+  let val = parseInt(cardsCountInput.value) || 1;
+  cardsCountInput.value = val + 1;
+  resetCalculation();
+};
+
+staffSelect.onchange = () => resetCalculation();
+
+function resetCalculation() {
+  isCalculated = false;
+  calculatedData = null;
+  calcActionBtn.textContent = 'Рассчитать';
+  calcActionBtn.style.background = '#8b5cf6';
+  updatePriceDisplay();
 }
 
-function openCalcModal() {
-  const emp = serverState.employees.find(e => e.id === selectedEmployeeId);
-  const cardCount = parseInt(document.getElementById('cardCount').value) || 1;
-  const totalBYN = cardCount * BASE_BYN_PER_CARD;
-  const rate = serverState.currencyRates ? parseFloat(serverState.currencyRates.BYN_RUB) : 28.5;
-  const totalRUB = Math.round(totalBYN * rate);
-
-  const overlay = document.getElementById('modalOverlay');
-  const body = document.getElementById('modalBody');
-  overlay.classList.remove('hidden');
-
-  body.innerHTML = `
-    <h3>🧮 Оформление заказа</h3>
-    <div style="margin-top:12px; font-size:0.9rem; color:#c4b5fd;">
-      <div>Исполнитель: <strong>${emp ? emp.name : 'Не выбран'}</strong></div>
-      <div>Количество карточек: <strong>${cardCount} шт.</strong></div>
-      <div style="margin-top:10px; font-size:1.1rem; color:#fff;">К оплате: <strong>${totalBYN} BYN (${totalRUB} ₽)</strong></div>
-    </div>
-    <button class="primary-btn" style="margin-top:15px;" onclick="confirmOrder(${totalBYN}, ${totalRUB})">Подтвердить заказ</button>
-  `;
+function updatePriceDisplay() {
+  const count = parseInt(cardsCountInput.value) || 1;
+  const byn = count * 5;
+  const rub = Math.round(byn * currentRate);
+  priceByn.textContent = `${byn} BYN`;
+  priceRub.textContent = `~ ${rub} ₽`;
 }
 
-function confirmOrder(totalBYN, totalRUB) {
-  const cardCount = parseInt(document.getElementById('cardCount').value) || 1;
-  const orderData = {
-    id: Date.now().toString().slice(-4),
-    empId: selectedEmployeeId,
-    clientId: currentUser.id,
-    clientName: currentUser.username,
-    cardCount: cardCount,
-    totalBYN: totalBYN,
-    totalRUB: totalRUB
-  };
+// Логика кнопки "Рассчитать" / "Перейти к заказу"
+calcActionBtn.onclick = () => {
+  if (!isCalculated) {
+    socket.emit('calculateOrder', {
+      count: cardsCountInput.value,
+      staffId: staffSelect.value
+    });
+  } else {
+    // Переход к оформлению
+    socket.emit('createOrder', {
+      clientId: currentUser.id,
+      clientName: currentUser.first_name,
+      staffId: calculatedData.staffId,
+      cardsCount: calculatedData.count,
+      priceBYN: calculatedData.priceBYN,
+      priceRUB: calculatedData.priceRUB
+    });
+    switchTab('tab-chat');
+  }
+};
 
-  socket.emit('create_order', orderData);
-  closeModal();
+// Результат расчета от сервера
+socket.on('calculationResult', (data) => {
+  calculatedData = data;
+  document.getElementById('modal-cards-count').textContent = data.count;
+  document.getElementById('modal-price-byn').textContent = `${data.priceBYN} BYN`;
+  document.getElementById('modal-price-rub').textContent = `~${data.priceRUB} ₽`;
+  document.getElementById('calc-modal').classList.remove('style-hidden');
+});
 
-  switchMainTab('chat');
-  const chatId = `chat_${selectedEmployeeId}_${currentUser.id}`;
-  const emp = serverState.employees.find(e => e.id === selectedEmployeeId);
-  openSpecificChat(chatId, emp ? emp.name : 'Сотрудник', emp ? emp.avatar : '');
+document.getElementById('modal-confirm-btn').onclick = () => {
+  isCalculated = true;
+  calcActionBtn.textContent = 'Перейти к заказу в чат';
+  calcActionBtn.style.background = '#10b981';
+  document.getElementById('calc-modal').classList.add('style-hidden');
+};
+
+document.getElementById('modal-cancel-btn').onclick = () => {
+  resetCalculation();
+  document.getElementById('calc-modal').classList.add('style-hidden');
+};
+
+// Рендер состояний (Заказы, Финансы, Отзывы)
+function renderAppState() {
+  renderFinance();
+  renderOrders();
+  renderReviews();
+  renderMessages();
+  checkReviewAccess();
 }
 
-// Управление Чатами
-function renderChatsList() {
-  const container = document.getElementById('dynamicChatsContainer');
-  if (!container) return;
-  container.innerHTML = '';
+// Финансовый блок в зависимости от роли
+function renderFinance() {
+  const grid = document.getElementById('finance-grid');
+  grid.innerHTML = '';
 
-  const chats = serverState.chats || {};
-  Object.keys(chats).forEach(chatId => {
-    const c = chats[chatId];
-    if (c.clientId === currentUser.id || isAuthorizedUser) {
-      const item = document.createElement('div');
-      item.className = 'chat-item';
-      item.onclick = () => openSpecificChat(c.id, c.clientName || 'Чат по заказу', `https://api.dicebear.com/7.x/bottts/svg?seed=${c.id}`);
-      item.innerHTML = `
-        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${c.id}" class="chat-avatar" alt="Avatar">
-        <div class="chat-info">
-          <strong>${c.clientName || 'Заказчик'}</strong>
-          <span>Заказ #${c.id.slice(-4)}</span>
+  if (currentRole === 'owner') {
+    // Владелец видит общую сумму и доход по каждому сотруднику
+    let totalBYN = 0;
+    let staffStats = {};
+
+    staffList.forEach(s => staffStats[s.id] = { name: s.name, total: 0 });
+
+    appState.orders.forEach(o => {
+      if (o.status === 'completed') {
+        totalBYN += o.priceBYN;
+        if (staffStats[o.staffId]) {
+          staffStats[o.staffId].total += o.priceBYN;
+        }
+      }
+    });
+
+    grid.innerHTML += `
+      <div class="finance-card">
+        <div class="title">Общий оборот</div>
+        <div class="amount">${totalBYN} BYN</div>
+        <div class="title">~${Math.round(totalBYN * currentRate)} ₽</div>
+      </div>
+    `;
+
+    Object.values(staffStats).forEach(st => {
+      grid.innerHTML += `
+        <div class="finance-card">
+          <div class="title">${st.name}</div>
+          <div class="amount">${st.total} BYN</div>
+          <div class="title">~${Math.round(st.total * currentRate)} ₽</div>
         </div>
       `;
-      container.appendChild(item);
-    }
-  });
-}
+    });
 
-function openSpecificChat(id, name, avatar) {
-  currentChatId = id;
-  document.getElementById('tgChatList').classList.add('hidden');
-  document.getElementById('tgChatRoom').classList.remove('hidden');
+  } else if (currentRole === 'staff') {
+    // Сотрудник видит ТОЛЬКО СВОЙ доход
+    let myTotalBYN = 0;
+    appState.orders.forEach(o => {
+      if (o.staffId === currentUser.id && o.status === 'completed') {
+        myTotalBYN += o.priceBYN;
+      }
+    });
 
-  document.getElementById('chatRoomAvatar').src = avatar;
-  document.getElementById('chatRoomName').innerText = name;
-
-  if (isAuthorizedUser) {
-    document.getElementById('chatPaidBtn').classList.remove('hidden');
-  }
-
-  renderMessages();
-}
-
-function backToChatsList() {
-  document.getElementById('tgChatRoom').classList.add('hidden');
-  document.getElementById('tgChatList').classList.remove('hidden');
-}
-
-function renderMessages() {
-  const box = document.getElementById('chatMessagesBox');
-  box.innerHTML = '';
-
-  const chat = (serverState.chats || {})[currentChatId];
-  const messages = chat ? chat.messages : [];
-
-  messages.forEach(m => {
-    const wrap = document.createElement('div');
-    wrap.className = `msg-wrapper ${m.sender === currentUser.username ? 'user' : 'bot'}`;
-    wrap.innerHTML = `<div class="msg"><strong>${m.sender}:</strong> ${m.text}</div>`;
-    box.appendChild(wrap);
-  });
-  box.scrollTop = box.scrollHeight;
-}
-
-function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text || !currentChatId) return;
-
-  socket.emit('send_message', { chatId: currentChatId, text, sender: currentUser.username });
-  input.value = '';
-}
-
-function handleChatKeyPress(e) { if (e.key === 'Enter') sendChatMessage(); }
-
-// Кнопка сотрудника «Разрешить отзыв / Оплачено»
-function markOrderPaid() {
-  const chat = (serverState.chats || {})[currentChatId];
-  if (chat) {
-    socket.emit('allow_review', { chatId: currentChatId, clientId: chat.clientId, empId: chat.empId });
-    alert("Заказ оплачен! Клиенту разрешено оставить отзыв.");
+    grid.innerHTML = `
+      <div class="finance-card">
+        <div class="title">Мой заработок</div>
+        <div class="amount">${myTotalBYN} BYN</div>
+        <div class="title">~${Math.round(myTotalBYN * currentRate)} ₽</div>
+      </div>
+    `;
   }
 }
 
-// Отзывы и Модерация
-function openAddReviewModal() {
-  if (!serverState.allowedToReview || !serverState.allowedToReview[currentUser.id]) {
-    alert("🔒 Вы сможете оставить отзыв только после выполнения заказа сотрудником!");
+// Рендер списка заказов
+function renderOrders() {
+  const container = document.getElementById('orders-list');
+  container.innerHTML = '';
+
+  let filteredOrders = appState.orders;
+
+  // Сотрудник видит только свои заказы
+  if (currentRole === 'staff') {
+    filteredOrders = appState.orders.filter(o => o.staffId === currentUser.id);
+  }
+
+  if (filteredOrders.length === 0) {
+    container.innerHTML = '<div style="color: #a0aec0; text-align: center;">Заказов нет</div>';
     return;
   }
 
-  const overlay = document.getElementById('modalOverlay');
-  const body = document.getElementById('modalBody');
-  overlay.classList.remove('hidden');
-
-  body.innerHTML = `
-    <h3>⭐ Написать отзыв</h3>
-    <textarea id="reviewText" class="custom-input" style="height:80px; margin-top:10px;" placeholder="Ваш отзыв..."></textarea>
-    <button class="primary-btn" style="margin-top:10px;" onclick="sendReview()">Отправить на проверку</button>
-  `;
-}
-
-function sendReview() {
-  const text = document.getElementById('reviewText').value.trim();
-  if (!text) return;
-  socket.emit('submit_review', { author: currentUser.username, text, clientId: currentUser.id });
-  closeModal();
-  alert("Отзыв отправлен на модерацию!");
-}
-
-function openAdminModal(type) {
-  const overlay = document.getElementById('modalOverlay');
-  const body = document.getElementById('modalBody');
-  overlay.classList.remove('hidden');
-
-  if (type === 'status') {
-    let empOptions = serverState.employees.map(e => `<option value="${e.id}">${e.name} (${e.status})</option>`).join('');
-    body.innerHTML = `
-      <h3>🟢 Статусы сотрудников</h3>
-      <select id="adminEmpSelect" class="custom-input" style="margin-top:10px;">${empOptions}</select>
-      <select id="statusSelect" class="custom-input" style="margin-top:10px;">
-        <option value="ready">🟢 Готов к работе</option>
-        <option value="rest">🟡 Отдых</option>
-        <option value="inactive">🔴 Неактивен</option>
-      </select>
-      <button class="primary-btn" style="margin-top:15px;" onclick="saveStatus()">Сохранить</button>
-    `;
-  } else if (type === 'moderation') {
-    const list = serverState.pendingReviews || [];
-    let html = `<h3>🛡️ Модерация отзывов (${list.length})</h3>`;
-    list.forEach(r => {
-      html += `
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:8px;">
-          <strong>${r.author}:</strong> ${r.text}
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="sm-btn success" onclick="moderateReview(${r.id}, 'approve')">Одобрить</button>
-            <button class="sm-btn danger" onclick="moderateReview(${r.id}, 'reject')">Отклонить</button>
-          </div>
+  filteredOrders.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'order-item';
+    div.innerHTML = `
+      <div class="order-header">
+        <b>Заказ #${o.id} (${o.clientName})</b>
+        <span class="order-status status-${o.status}">${getStatusLabel(o.status)}</span>
+      </div>
+      <div>Карточек: ${o.cardsCount} | Сумма: ${o.priceBYN} BYN (~${o.priceRUB} ₽)</div>
+      ${(currentRole === 'owner' || currentRole === 'staff') ? `
+        <div style="margin-top: 8px; display: flex; gap: 6px;">
+          <button onclick="changeStatus(${o.id}, 'in_progress')" class="btn-secondary">В работу</button>
+          <button onclick="changeStatus(${o.id}, 'completed')" class="btn-secondary">Завершить</button>
         </div>
-      `;
-    });
-    body.innerHTML = html || '<h3>🛡️ Нет отзывов на проверку</h3>';
-  } else if (type === 'finance') {
-    let html = '<h3>💰 Выполненные карточки</h3>';
-    serverState.employees.forEach(e => {
-      html += `<div style="margin-top:8px;">${e.name}: <strong>${e.cardsDone || 0} карточек</strong></div>`;
-    });
-    body.innerHTML = html;
+      ` : ''}
+    `;
+    container.appendChild(div);
+  });
+}
+
+function getStatusLabel(status) {
+  if (status === 'pending') return 'Новый';
+  if (status === 'in_progress') return 'В работе';
+  if (status === 'completed') return 'Завершен';
+  return status;
+}
+
+window.changeStatus = (orderId, status) => {
+  socket.emit('updateOrderStatus', { orderId, status });
+};
+
+// Проверка права на написание отзыва (только если есть завершенный заказ)
+function checkReviewAccess() {
+  const hasCompletedOrder = appState.orders.some(o => o.clientId === currentUser.id && o.status === 'completed');
+  if (hasCompletedOrder || currentRole === 'owner' || currentRole === 'staff') {
+    addReviewBtn.style.display = 'block';
+  } else {
+    addReviewBtn.style.display = 'none';
   }
 }
 
-function saveStatus() {
-  const empId = parseInt(document.getElementById('adminEmpSelect').value);
-  const status = document.getElementById('statusSelect').value;
-  socket.emit('update_employee_status', { empId, status });
-  closeModal();
-}
-
-function moderateReview(reviewId, action) {
-  socket.emit('moderate_review', { reviewId, action });
-  closeModal();
-}
-
-function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
-
-function renderDropdown() {
-  const menu = document.getElementById('dropdownMenu');
-  const selectedBox = document.getElementById('dropdownSelected');
-  if (!menu || !selectedBox) return;
-
-  menu.innerHTML = '';
-  const emps = serverState.employees || [];
-  const activeEmp = emps.find(e => e.id === selectedEmployeeId) || emps[0];
-
-  if (activeEmp) selectedBox.innerHTML = getEmployeeHtml(activeEmp);
-
-  emps.forEach(emp => {
-    const item = document.createElement('div');
-    item.className = `dropdown-item ${emp.status !== 'ready' ? 'disabled' : ''}`;
-    item.innerHTML = getEmployeeHtml(emp);
-    item.onclick = (e) => {
-      e.stopPropagation();
-      if (emp.status !== 'ready') return alert("Сотрудник не готов к работе!");
-      selectedEmployeeId = emp.id;
-      renderDropdown(); recalculateTotal(); toggleDropdown();
-    };
-    menu.appendChild(item);
-  });
-}
-
-function getEmployeeHtml(emp) {
-  let st = "🟢 В сети";
-  if (emp.status === 'rest') st = "🟡 Отдых";
-  if (emp.status === 'inactive') st = "🔴 Неактивен";
-
-  return `
-    <img src="${emp.avatar}" class="emp-avatar" alt="Avatar">
-    <div class="emp-details">
-      <div class="emp-name-row"><span class="emp-name">${emp.name}</span><span class="emp-status">${st}</span></div>
-      <div class="emp-sub-row"><span class="emp-queue">Очередь: ${emp.queue || 0} чел.</span></div>
-    </div>
-  `;
-}
-
-function toggleDropdown() { document.getElementById('dropdownMenu').classList.toggle('hidden'); }
-
-function renderPublicReviews() {
-  const container = document.getElementById('publicReviewsList');
-  if (!container) return;
+// Отзывы
+function renderReviews() {
+  const container = document.getElementById('reviews-list');
   container.innerHTML = '';
-  (serverState.publicReviews || []).forEach(r => {
-    const card = document.createElement('div');
-    card.className = 'review-card';
-    card.innerHTML = `<div class="review-header"><strong>${r.author}</strong></div><div class="review-text">${r.text}</div>`;
-    container.appendChild(card);
+  if (appState.reviews.length === 0) {
+    container.innerHTML = '<div style="color: #a0aec0;">Отзывов пока нет.</div>';
+    return;
+  }
+  appState.reviews.forEach(r => {
+    container.innerHTML += `
+      <div class="card">
+        <div style="display: flex; justify-content: space-between;">
+          <b>${r.authorName}</b>
+          <span>${'⭐'.repeat(r.rating)}</span>
+        </div>
+        <p style="margin-top: 8px; font-size: 14px;">${r.text}</p>
+      </div>
+    `;
   });
 }
+
+addReviewBtn.onclick = () => {
+  document.getElementById('review-modal').classList.remove('style-hidden');
+};
+
+document.getElementById('review-cancel-btn').onclick = () => {
+  document.getElementById('review-modal').classList.add('style-hidden');
+};
+
+document.getElementById('review-submit-btn').onclick = () => {
+  const text = document.getElementById('review-text').value;
+  const rating = parseInt(document.getElementById('review-rating').value) || 5;
+  if (text) {
+    socket.emit('addReview', {
+      authorName: currentUser.first_name,
+      text,
+      rating
+    });
+    document.getElementById('review-text').value = '';
+    document.getElementById('review-modal').classList.add('style-hidden');
+  }
+};
+
+// Чат
+function renderMessages() {
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+  appState.messages.forEach(m => {
+    const isMy = m.senderId === currentUser.id;
+    const div = document.createElement('div');
+    div.className = `message-bubble ${isMy ? 'message-my' : 'message-other'}`;
+    div.innerHTML = `
+      <div style="font-size: 10px; opacity: 0.8;">${m.senderName} • ${m.timestamp}</div>
+      <div>${m.text}</div>
+    `;
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+document.getElementById('chat-send-btn').onclick = () => {
+  const input = document.getElementById('chat-input');
+  if (input.value.trim()) {
+    socket.emit('sendMessage', {
+      senderId: currentUser.id,
+      senderName: currentUser.first_name,
+      text: input.value.trim()
+    });
+    input.value = '';
+  }
+};
