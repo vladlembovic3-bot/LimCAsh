@@ -36,7 +36,10 @@ body {
   padding: 16px;
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.25);
   position: relative;
+  overflow: hidden;
 }
+
+.hidden { display: none !important; }
 
 .header {
   display: flex;
@@ -104,7 +107,6 @@ body {
   outline: none;
 }
 
-/* КАСТОМНЫЙ ДРОПДАУН ВЫБОРА СОТРУДНИКА */
 .custom-dropdown-container {
   position: relative;
   background: var(--input-bg);
@@ -200,7 +202,13 @@ body {
 }
 .sm-btn.success { background: #10b981; }
 
-/* КАСТОМНАЯ КРУТЕЛКА С РАКЕТОЙ ДЛЯ ДЛИННЫХ ОТЗЫВОВ */
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .reviews-list {
   max-height: 380px;
   overflow-y: auto;
@@ -208,23 +216,13 @@ body {
 }
 
 .reviews-list::-webkit-scrollbar {
-  width: 12px;
-  background: repeating-linear-gradient(180deg, #1f1138, #1f1138 10px, #251240 10px, #251240 20px);
+  width: 8px;
+  background: #1f1138;
 }
 
 .reviews-list::-webkit-scrollbar-thumb {
   background: var(--accent-color);
   border-radius: 10px;
-  border: 2px solid #160d29;
-  position: relative;
-}
-
-/* Эффект ракеты 🚀 на ползунке */
-.reviews-list::-webkit-scrollbar-thumb::after {
-  content: "🚀";
-  font-size: 10px;
-  display: block;
-  text-align: center;
 }
 
 .review-card {
@@ -239,11 +237,34 @@ body {
 .review-author { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 0.85rem; }
 .review-text { font-size: 0.82rem; color: var(--text-sub); line-height: 1.4; word-break: break-word; }
 
-/* Контакты */
 .contact-card { background: var(--input-bg); border: 1px solid var(--border-color); padding: 14px; border-radius: 14px; }
 .contact-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; }
 
-/* ТЕЛЕГРАМ ЧАТ ОВЕРЛЕЙ */
+.admin-container { padding: 4px 0; }
+.admin-header { margin-bottom: 12px; text-align: center; }
+.admin-menu { display: flex; flex-direction: column; gap: 10px; }
+.admin-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+}
+.admin-card-title { font-weight: bold; font-size: 0.9rem; color: var(--accent-glow); }
+.admin-card-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
+
+.admin-footer { margin-top: 16px; }
+.admin-toggle-btn {
+  width: 100%;
+  padding: 12px;
+  background: #251240;
+  border: 1px solid var(--accent-color);
+  border-radius: 12px;
+  color: var(--accent-glow);
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .tg-chat-overlay {
   position: absolute;
   inset: 0;
@@ -269,46 +290,66 @@ body {
   margin-bottom: 8px;
   cursor: pointer;
 }
-.pinned-support { border-color: var(--accent-color); background: rgba(139, 92, 246, 0.15); }
+
 .chat-avatar { width: 36px; height: 36px; border-radius: 50%; }
-.chat-avatar-small { width: 28px; height: 28px; border-radius: 50%; }
-.chat-info { flex: 1; }
-.chat-info strong { display: block; font-size: 0.85rem; }
-.chat-info span { font-size: 0.72rem; color: var(--text-sub); }
+.chat-avatar-small { width: 24px; height: 24px; border-radius: 50%; }
+.chat-info { display: flex; flex-direction: column; flex: 1; font-size: 0.8rem; }
+.chat-info span { font-size: 0.7rem; color: var(--text-sub); }
 .pin-badge { font-size: 0.65rem; background: var(--accent-color); padding: 2px 6px; border-radius: 6px; }
+.chats-divider { font-size: 0.75rem; color: var(--text-sub); margin: 10px 0 6px 0; }
 
-.tg-chat-room { display: flex; flex-direction: column; flex: 1; background: var(--input-bg); border-radius: 14px; border: 1px solid var(--border-color); overflow: hidden; }
-.chat-room-bar { display: flex; align-items: center; gap: 8px; padding: 10px; background: #160d29; border-bottom: 1px solid var(--border-color); }
-.chat-room-info { flex: 1; }
-.chat-room-info strong { display: block; font-size: 0.82rem; }
-.chat-room-info span { font-size: 0.7rem; color: var(--accent-glow); }
+.tg-chat-room { display: flex; flex-direction: column; height: 100%; }
+.chat-room-bar { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.chat-room-info { display: flex; flex-direction: column; flex: 1; font-size: 0.8rem; }
+.chat-room-info span { font-size: 0.68rem; color: #10b981; }
 
-.chat-messages { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-.msg-wrapper { display: flex; flex-direction: column; max-width: 85%; }
-.msg-wrapper.user { align-self: flex-end; }
-.msg-wrapper.bot { align-self: flex-start; }
-.msg { padding: 8px 12px; border-radius: 12px; font-size: 0.82rem; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+.msg-wrapper { display: flex; width: 100%; }
+.msg-wrapper.user { justify-content: flex-end; }
+.msg-wrapper.bot { justify-content: flex-start; }
+.msg {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
 .msg-wrapper.user .msg { background: var(--accent-color); color: #fff; }
-.msg-wrapper.bot .msg { background: #251240; color: #fff; border: 1px solid var(--border-color); }
+.msg-wrapper.bot .msg { background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); }
 
-.chat-input-row { display: flex; gap: 6px; padding: 8px; background: #160d29; border-top: 1px solid var(--border-color); }
-.chat-input-row input { flex: 1; padding: 8px 10px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; color: #fff; outline: none; }
-.send-btn { background: var(--accent-color); border: none; color: #fff; padding: 0 12px; border-radius: 8px; cursor: pointer; }
+.chat-input-row { display: flex; gap: 6px; margin-top: auto; }
+.chat-input-row input { flex: 1; padding: 10px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 10px; color: #fff; outline: none; }
+.send-btn { padding: 0 14px; background: var(--accent-color); border: none; border-radius: 10px; color: #fff; cursor: pointer; }
 
-/* АДМИНКА */
-.admin-container { padding-top: 5px; }
-.admin-header h3 { color: #f59e0b; margin-bottom: 12px; }
-.admin-menu { display: flex; flex-direction: column; gap: 10px; }
-.admin-card { background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; }
-.admin-card-title { font-weight: bold; color: #fff; font-size: 0.88rem; }
-.admin-card-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px);
+  z-index: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
 
-.admin-footer { margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--border-color); }
-.admin-toggle-btn { width: 100%; padding: 12px; background: #f59e0b; border: none; border-radius: 12px; color: #000; font-weight: bold; cursor: pointer; }
+.modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 360px;
+  position: relative;
+}
 
-/* МОДАЛКА */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 15px; }
-.modal-content { background: #160d29; width: 100%; max-width: 380px; border-radius: 16px; border: 1px solid var(--border-color); padding: 16px; position: relative; }
-.modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
-
-.hidden { display: none !important; }
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
