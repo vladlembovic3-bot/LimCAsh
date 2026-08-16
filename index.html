@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LimCash Web App</title>
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <link rel="stylesheet" href="style.css?v=5.0">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -69,7 +69,7 @@
           </div>
           <div class="counter-box">
             <button type="button" class="btn-counter" onclick="changeCount('itemCount', -1, 1, 30)">-</button>
-            <input type="number" id="itemCount" value="1" readonly>
+            <input type="number" id="itemCount" value="1" readonly onchange="recalculateTotal()">
             <button type="button" class="btn-counter" onclick="changeCount('itemCount', 1, 1, 30)">+</button>
           </div>
         </div>
@@ -82,9 +82,15 @@
           </div>
           <div class="counter-box">
             <button type="button" class="btn-counter" onclick="changeCount('cardCount', -1, 1, 150)">-</button>
-            <input type="number" id="cardCount" value="1" readonly>
+            <input type="number" id="cardCount" value="1" readonly onchange="recalculateTotal()">
             <button type="button" class="btn-counter" onclick="changeCount('cardCount', 1, 1, 150)">+</button>
           </div>
+        </div>
+
+        <!-- Окно вывода суммы -->
+        <div class="calc-total-box">
+          <div class="calc-total-label">Итоговая стоимость заказа:</div>
+          <div class="calc-total-amount" id="totalAmountDisplay">0 ₽</div>
         </div>
 
         <button type="button" class="primary-btn" onclick="openCalcModal()">Рассчитать</button>
@@ -106,26 +112,31 @@
 
         <div class="admin-card" onclick="openAdminModal('status')">
           <div class="admin-card-title">🟢 2. Состояние работы</div>
-          <div class="admin-card-sub">Изменить статус и режим ТГ</div>
+          <div class="admin-card-sub">Изменить статус любого сотрудника и режим ТГ</div>
+        </div>
+
+        <div class="admin-card" onclick="openAdminModal('schedule')">
+          <div class="admin-card-title">📅 3. График работы</div>
+          <div class="admin-card-sub">Управление сменами и расписанием сотрудников</div>
         </div>
 
         <div class="admin-card" onclick="openAdminModal('my-reviews')">
-          <div class="admin-card-title">⭐ 3. Мои отзывы</div>
+          <div class="admin-card-title">⭐ 4. Мои отзывы</div>
           <div class="admin-card-sub">Только ваши полученные отзывы</div>
         </div>
 
         <div class="admin-card" onclick="openAdminModal('finance')">
-          <div class="admin-card-title">💰 4. Финансы & Касса</div>
+          <div class="admin-card-title">💰 5. Финансы & Касса</div>
           <div class="admin-card-sub">Подсчёт карточек и выплат</div>
         </div>
 
         <div class="admin-card" onclick="openTelegramChatOverlay()">
-          <div class="admin-card-title">💬 5. Чаты</div>
+          <div class="admin-card-title">💬 6. Чаты</div>
           <div class="admin-card-sub">Поддержка и принятые заказчики</div>
         </div>
 
         <div class="admin-card" onclick="openAdminModal('moderation')">
-          <div class="admin-card-title">🛡️ 6. Модерация</div>
+          <div class="admin-card-title">🛡️ 7. Модерация</div>
           <div class="admin-card-sub">Проверка отзывов</div>
         </div>
       </div>
@@ -147,7 +158,7 @@
     
     <div id="tgChatList" class="tg-chat-list">
       <div class="chat-item pinned-support" onclick="openSpecificChat('support', 'Служба Поддержки', 'https://api.dicebear.com/7.x/bottts/svg?seed=Support')">
-        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Support" class="chat-avatar">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Support" class="chat-avatar" alt="Support Avatar">
         <div class="chat-info">
           <strong>🎧 Служба Поддержки</strong>
           <span>Нажмите для связи с администратором</span>
@@ -161,7 +172,7 @@
     <div id="tgChatRoom" class="tg-chat-room hidden">
       <div class="chat-room-bar">
         <button type="button" class="back-btn" onclick="backToChatsList()">⬅</button>
-        <img id="chatRoomAvatar" class="chat-avatar-small" src="">
+        <img id="chatRoomAvatar" class="chat-avatar-small" src="" alt="Chat Avatar">
         <div class="chat-room-info">
           <strong id="chatRoomName">Чат</strong>
           <span id="chatRoomSub">В сети</span>
@@ -186,6 +197,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=3.0"></script>
+  <script src="script.js?v=5.0"></script>
 </body>
 </html>
