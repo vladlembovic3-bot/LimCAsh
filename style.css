@@ -377,3 +377,24 @@ body {
   font-size: 1.1rem;
   cursor: pointer;
 }
+
+.calc-total-rates {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.calc-total-sub {
+  font-size: 0.85rem;
+  color: #a78bfa;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.sm-btn.danger {
+  background: #ef4444;
+}
+
+.sm-btn.success {
+  background: #10b981;
+}
